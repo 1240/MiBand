@@ -26,12 +26,9 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 
     @Override
     public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-        if (device != null && device.getName().contains("MI")) {
+        if (device != null && device.getName().contains("MI1S")) {
             System.out.println(device.getAddress());
-            scanLeDevice(false);
-            Intent intent = new Intent(getApplicationContext(), MiOverviewActivity.class);
-            intent.putExtra("address", );
-            startActivity(intent);
+            tv.setText("Браслет найден, синхронизируюсь...");
         }
     }
 }
