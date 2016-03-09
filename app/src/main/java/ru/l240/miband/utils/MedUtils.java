@@ -3,15 +3,12 @@ package ru.l240.miband.utils;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Message;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
-
-import ru.fors.remsmed.core.MedContract;
-import ru.fors.remsmed.core.dto.contact.Message;
-import ru.fors.remsmed.db.DBHelper;
 
 /**
  * @author Alexander Popov on 11.05.15.
@@ -64,40 +61,5 @@ public class MedUtils {
             return true;
     }
 
-    public static class MsgComparator implements Comparator {
 
-        @Override
-        public int compare(Object msg1, Object msg2) {
-            return ((Message) msg1).getId().compareTo(((Message) msg2).getId());
-        }
-    }
-
-    public static class SyncMsgComparator implements Comparator {
-
-        @Override
-        public int compare(Object msg1, Object msg2) {
-            return ((Message) msg2).getId().compareTo(((Message) msg1).getId());
-        }
-    }
-
-    public static class MsgDateComparator implements Comparator {
-
-        @Override
-        public int compare(Object msg1, Object msg2) {
-            return ((Message) msg2).getDate().compareTo(((Message) msg1).getDate());
-        }
-    }
-
-    public static Integer precriptionBadge(Context context) {
-        DBHelper dbHelper = new DBHelper(context);
-        Integer allPrescrExecutionsCount = context.getContentResolver()
-                .query(MedContract.PrescrExecution.CONTENT_URI,
-                        MedContract.PrescrExecution.DEFAULT_PROJECTION,
-                        MedContract.PrescrExecution.KEY_EXEC_PLAN_DATE + " BETWEEN '" + new MedUtils().dfDB().format(new Date()) + " 00:00:00' AND '" + new MedUtils().dfDB().format(new Date()) + " 99:99:99'",
-                        null,
-                        MedContract.PrescrExecution.DEFAULT_SORT).getCount();
-        Integer allPrescrCount = dbHelper.getPrescriptionsCount(new Date(), new Date())
-                + dbHelper.getPrescriptionsForDayNoTime(new Date()).size();
-        return allPrescrCount - allPrescrExecutionsCount;
-    }
 }

@@ -16,9 +16,9 @@ public class UserMeasurement extends RealmObject {
     private String measurementName;
     private String measurementUnits;
     private String strValue;
-    private Long measurementId;
+    private long measurementId;
     private Date measurementDate;
-    private Long measurementFieldId;
+    private long measurementFieldId;
 
     public int getId() {
         return id;
@@ -60,11 +60,11 @@ public class UserMeasurement extends RealmObject {
         this.strValue = strValue;
     }
 
-    public Long getMeasurementId() {
+    public long getMeasurementId() {
         return measurementId;
     }
 
-    public void setMeasurementId(Long measurementId) {
+    public void setMeasurementId(long measurementId) {
         this.measurementId = measurementId;
     }
 
@@ -76,11 +76,11 @@ public class UserMeasurement extends RealmObject {
         this.measurementDate = measurementDate;
     }
 
-    public Long getMeasurementFieldId() {
+    public long getMeasurementFieldId() {
         return measurementFieldId;
     }
 
-    public void setMeasurementFieldId(Long measurementFieldId) {
+    public void setMeasurementFieldId(long measurementFieldId) {
         this.measurementFieldId = measurementFieldId;
     }
 }

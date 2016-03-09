@@ -22,4 +22,6 @@
     <string name="password">Password...</string>
     <string name="signin">Sign in</string>
     <string name="logo_title">Personal instant medical assistant</string>
+    <string name="login_check_internet">Pls check internet connection</string>
+
 </resources>

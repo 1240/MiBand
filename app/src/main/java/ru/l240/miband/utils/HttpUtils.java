@@ -16,7 +16,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
-import retrofit.Response;
+import retrofit2.Response;
+
 
 /**
  * @author Alexander Popov created on 15.09.2015.
@@ -193,7 +194,6 @@ public class HttpUtils {
     private static String responseToString(Response response) {
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
-        try {
 
             reader = new BufferedReader(new InputStreamReader(response.raw().body().byteStream()));
 
@@ -206,10 +206,6 @@ public class HttpUtils {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
 
         return sb.toString();
     }
@@ -217,7 +213,6 @@ public class HttpUtils {
     private static String errorResponseToString(Response response) {
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
-        try {
 
             reader = new BufferedReader(new InputStreamReader(response.errorBody().byteStream()));
 
@@ -230,10 +225,6 @@ public class HttpUtils {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
 
         return sb.toString();
     }

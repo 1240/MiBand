@@ -1,4 +1,4 @@
-package ru.fors.remsmed;
+package ru.l240.miband;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -26,10 +26,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.ParseException;
+import java.util.Date;
 
 import ru.l240.miband.R;
+import ru.l240.miband.retrofit.LoginLoader;
+import ru.l240.miband.retrofit.response.RequestResult;
 import ru.l240.miband.retrofit.response.Response;
+import ru.l240.miband.utils.DateUtils;
 import ru.l240.miband.utils.MedUtils;
+import ru.l240.miband.utils.NotificationUtils;
 
 
 /**
@@ -233,7 +238,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
             NotificationUtils utils = NotificationUtils.getInstance(getApplicationContext());
             try {
-                utils.createAlarmNotify();
+                utils.createAlarmNotify(DateUtils.addMinutes(new Date(), 1));
             } catch (ParseException e) {
                 e.printStackTrace();
             }

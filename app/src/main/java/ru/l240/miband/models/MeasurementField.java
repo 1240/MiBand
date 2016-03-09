@@ -9,18 +9,21 @@ import io.realm.RealmObject;
  */
 public class MeasurementField extends RealmObject {
 
-    @SerializedName("name")
+    private int id;
     private String name;
-    @SerializedName("minValue")
-    private Integer min;
-    @SerializedName("maxValue")
-    private Integer max;
-    @SerializedName("initialValue")
-    private Double standartValue;
-    @SerializedName("lastValue")
-    private Double value;
-    @SerializedName("measurementId")
-    private Long measurementId;
+    private int minValue;
+    private int maxValue;
+    private double initialValue;
+    private double lastValue;
+    private int measurementId;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -30,44 +33,43 @@ public class MeasurementField extends RealmObject {
         this.name = name;
     }
 
-    public Integer getMin() {
-        return min;
+    public int getMinValue() {
+        return minValue;
     }
 
-    public void setMin(Integer min) {
-        this.min = min;
+    public void setMinValue(int minValue) {
+        this.minValue = minValue;
     }
 
-    public Integer getMax() {
-        return max;
+    public int getMaxValue() {
+        return maxValue;
     }
 
-    public void setMax(Integer max) {
-        this.max = max;
+    public void setMaxValue(int maxValue) {
+        this.maxValue = maxValue;
     }
 
-    public Double getStandartValue() {
-        return standartValue;
+    public double getInitialValue() {
+        return initialValue;
     }
 
-    public void setStandartValue(Double standartValue) {
-        this.standartValue = standartValue;
+    public void setInitialValue(double initialValue) {
+        this.initialValue = initialValue;
     }
 
-    public Double getValue() {
-        return value;
+    public double getLastValue() {
+        return lastValue;
     }
 
-    public void setValue(Double value) {
-        this.value = value;
+    public void setLastValue(double lastValue) {
+        this.lastValue = lastValue;
     }
 
-    public Long getMeasurementId() {
+    public int getMeasurementId() {
         return measurementId;
     }
 
-    public void setMeasurementId(Long measurementId) {
+    public void setMeasurementId(int measurementId) {
         this.measurementId = measurementId;
     }
-
 }

@@ -58,29 +58,14 @@ public class LoginLoader extends BaseLoader {
             //save profile
             Call<Profile> call = service.getCurrentUser(cookie);
             profile = call.execute().body();
-            String getAvatarImage = getContext().getString(R.string.url) + "/getAvatarImage";
-            Bitmap bitmap = new HttpUtils().getImage(getAvatarImage, cookie);
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-            byte[] byteArray = stream.toByteArray();
-            profile.setAvatar(byteArray);
             RealmHelper.save(Realm.getInstance(getContext()), Collections.singletonList(profile));
 //            dbHelper.createProfile(profile);
 
-            //save measurement
             Call<List<Measurement>> getMeasurementsDictionary = service.getMeasurementsDictionary(cookie);
             List<Measurement> measurements = getMeasurementsDictionary.execute().body();
-            for (Measurement measurement : measurements) {
-                contentResolver
-                        .insert(MedContract.Measurement.CONTENT_URI,
-                                measurement.toContentValues());
-                for (MeasurementField field : measurement.getFields()) {
-                    contentResolver
-                            .insert(MedContract.MeasurementField.CONTENT_URI,
-                                    field.toContentValues());
-                }
-            }
-        } catch (IOException e) {
+            RealmHelper.save(Realm.getInstance(getContext()), measurements);
+
+        } catch (Exception e) {
             e.printStackTrace();
             return new MedResponse()
                     .setRequestResult(RequestResult.ERROR)
@@ -94,31 +79,7 @@ public class LoginLoader extends BaseLoader {
 
     @Override
     protected void onError() {
-        DBHelper dbHelper = new DBHelper(getContext());
-        dbHelper.removeAll();
-    }
-
-    public class LoginR {
-        @SerializedName("auth")
-        private Boolean auth;
-
-        @SerializedName("error")
-        private String error;
-
-        public Boolean getAuth() {
-            return auth;
-        }
-
-        public void setAuth(Boolean auth) {
-            this.auth = auth;
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public void setError(String error) {
-            this.error = error;
-        }
+        RealmHelper.clear(Realm.getInstance(getContext()), Profile.class);
+        RealmHelper.clear(Realm.getInstance(getContext()), Measurement.class);
     }
 }

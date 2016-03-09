@@ -9,16 +9,12 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
-import ru.fors.remsmed.MainActivity;
-import ru.fors.remsmed.R;
-import ru.fors.remsmed.core.dto.prescriptions.PrescriptionItem;
-import ru.fors.remsmed.db.DBHelper;
+import ru.l240.miband.MainActivity;
+import ru.l240.miband.R;
+
 
 /**
  * @author Alexander Popov on 10.07.2015.
@@ -30,9 +26,9 @@ public class NotificationUtils {
     private static NotificationUtils instance;
 
     private static Context context;
+    private static int lastAlarmId = 0;
     private NotificationManager manager;
     private int lastNotifId = 0;
-    private static int lastAlarmId = 0;
     private HashMap<Integer, Notification> notifications;
 
 
@@ -56,7 +52,7 @@ public class NotificationUtils {
     public int createInfoNotification(String message, Date when) {
         Intent notificationIntent = new Intent(context, MainActivity.class);
         NotificationCompat.Builder nb = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.drawable.ic_launcher_nuffield) //ic_launcher_nuffield //ic_launcher_remsmed
+                .setSmallIcon(R.mipmap.android_avatar) //ic_launcher_nuffield //ic_launcher_remsmed
                 .setAutoCancel(true)
                 .setTicker(message)
                 .setContentText(message)
@@ -80,8 +76,7 @@ public class NotificationUtils {
         manager.cancelAll();
     }
 
-
-    public List<PrescriptionItem> getEarlestNotify(Date date) {
+    /*public List<PrescriptionItem> getEarlestNotify(Date date) {
         Date compareDate = null;
         DBHelper dbHelper = new DBHelper(context);
         List<PrescriptionItem> prescriptionsForDay = dbHelper.getPrescriptionsForDay(date);
@@ -126,22 +121,13 @@ public class NotificationUtils {
             notificationUtils.createInfoNotification(prescriptionItem.getDescription(), date);
         }
     }
-
-    public void createAlarmNotify() throws ParseException {
+*/
+    public void createAlarmNotify(Date date) throws ParseException {
         Intent intent = new Intent(context, AlarmNotificationService.class);
-        List<PrescriptionItem> earlestNotify = getEarlestNotify(DateUtils.addMinutes(new Date(), +5));
-        if (earlestNotify.isEmpty()) {
-            earlestNotify = getEarlestNotify(DateUtils.startOfTheDay(DateUtils.addDays(new Date(), 1)));
-        }
-        if (!earlestNotify.isEmpty()) {
-            lastAlarmId++;
-            PendingIntent pintent = PendingIntent.getService(context, lastAlarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            Integer hour = earlestNotify.get(0).getTemplate().getHour();
-            Date execDate =  (new Date().before(DateUtils.setHours(new Date(), hour))) ? new Date() :  DateUtils.addDays(new Date(), 1);
-            Date date = new SimpleDateFormat("dd.MM.yyyy HH").parse(new SimpleDateFormat("dd.MM.yyyy ").format(execDate) + hour);
-            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-            alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pintent);
-        }
+        lastAlarmId++;
+        PendingIntent pintent = PendingIntent.getService(context, lastAlarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), 60000, pintent);
     }
 
     public void cancelAllAlarmNotify() {

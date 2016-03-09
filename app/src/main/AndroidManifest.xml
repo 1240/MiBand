@@ -17,6 +17,12 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/l24o">
+        <receiver android:name=".utils.receivers.ConnectionChangeReceiver">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
+        <service android:name=".utils.AlarmNotificationService" android:enabled="true"/>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,7 +32,8 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login"></activity>
+            android:label="@string/title_activity_login"
+            android:windowSoftInputMode="adjustPan"/>
     </application>
 
 </manifest>

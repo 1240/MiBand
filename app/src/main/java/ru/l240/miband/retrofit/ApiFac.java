@@ -3,6 +3,8 @@ package ru.l240.miband.retrofit;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -20,6 +22,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
+import io.realm.RealmObject;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -30,9 +33,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiFac {
 
     private static final Gson GSON = new GsonBuilder()
+            .setExclusionStrategies(new ExclusionStrategy() {
+                @Override
+                public boolean shouldSkipField(FieldAttributes f) {
+                    return f.getDeclaringClass().equals(RealmObject.class);
+                }
+
+                @Override
+                public boolean shouldSkipClass(Class<?> clazz) {
+                    return false;
+                }
+            })
             .registerTypeAdapter(Date.class, new DateDeserializer())
-            .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
-            .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .create();
 
     private static class DateDeserializer implements JsonDeserializer<Date> {
@@ -76,7 +88,7 @@ public class ApiFac {
         mCookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CLIENT.setCookieHandler(mCookieManager);*/
         Retrofit.Builder builder = new Retrofit.Builder()
-                .baseUrl("http://stacionar.fors-vyatka.ru/iapp")
+                .baseUrl("http://stacionar.fors-vyatka.ru/iapp/")
                 .addConverterFactory(GsonConverterFactory.create(GSON));
 //                .client(CLIENT);
         return builder.build();

@@ -8,7 +8,60 @@
     <color name="s1">#9F9F9F</color>
     <color name="s3">#9E9E9E</color>
     <color name="s4">#AA365B</color>
-    <color name="main_color">#00b240</color>
+    <color name="main_color">#fe1a1b</color>
+    <!-- Background color of action bars -->
+    <color name="actionbar_background_color">#ffffff</color>
+    <color name="actionbar_font_color">#ff696969</color>
+    <color name="actionbar_background_color_">#7d7d7d</color>
+    <color name="datebar_background_color_">#ffd7d7d7</color>
+    <color name="system_font_color">#7d7d7d</color>
+    <color name="chat_me">#f44848</color>
+    <color name="chat_contact">#e6e5ea</color>
+    <color name="main_color_dark">#ffbc2727</color>
     <color name="main_font_color">#ffffff</color>
+    <color name="bottombar_font_color">#000000</color>
+    <color name="bottombar_font_color_active">#ffffff</color>
+    <color name="bottombar_background_color">#eeeeee</color>
+
+    <color name="badge_background">@color/main_color</color>
+    <color name="badge_background_active">#ffffff</color>
+
+    <color name="actionbar_back">#ffffff</color>
+    <color name="background_color_focus">#fff9f9f9</color>
+
+    <!-- main colors for highlight -->
+    <color name="red">#FFff4546</color>
+    <color name="yellow">#FFffd13e</color>
+    <color name="orange">#FFffa245</color>
+    <color name="green">#FF70d865</color>
+    <color name="white">#FFffffff</color>
+    <color name="black">#FF000000</color>
+    <color name="blue">#FF0000ff</color>
+    <color name="sky">#FF31caff</color>
+    <color name="faded_white">#22FFFFFF</color>
+
+    <!-- listview colros -->
+    <color name="listview_header">#f1f1f1f1</color>
+    <color name="listview_first">#ffffff</color>
+    <color name="listview_second">#fbfbfb</color>
+
+    <color name="header">#f1f1f1f1</color>
+
+    <color name="system_font">#413f40</color>
+
+    <!-- tabsbar -->
+    <color name="tabsbar_first">#f0f0f0</color>
+    <color name="tabsbar_second">#fcfcfc</color>
+
+    <!-- feedback -->
+    <color name="answer_shape">#e5e5e5</color>
+
+    <!-- measurements -->
+    <color name="out_of_date">#f44848</color>
+
+    <color name="gradient_start">#ef0101</color>
+    <color name="gradient_end">#ff3634</color>
+
+    <color name="chart_line_color">#77cacaca</color>
 
 </resources>
