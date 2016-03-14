@@ -11,11 +11,15 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import io.realm.Realm;
 import ru.l240.miband.models.UserMeasurement;
+import ru.l240.miband.realm.RealmHelper;
 import ru.l240.miband.retrofit.ApiFac;
 import ru.l240.miband.retrofit.ApiService;
+import ru.l240.miband.retrofit.RequestTaskAddMeasurement;
 import ru.l240.miband.utils.MedUtils;
 
 /**
@@ -30,25 +34,10 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
             NetworkInfo ni = (NetworkInfo) intent.getExtras().get(ConnectivityManager.EXTRA_NETWORK_INFO);
             if (ni != null && ni.getState() == NetworkInfo.State.CONNECTED) {
                 Log.i("app", "Network " + ni.getTypeName() + " connected");
-                SharedPreferences preferences = mContext.getSharedPreferences(MedUtils.SCHEDULER_PREF, 0);
-                String mes = preferences.getString(MedUtils.SCHEDULER_MES_PREF, "");
-                String journal = preferences.getString(MedUtils.SCHEDULER_JOURNAL_PREF, "");
-                String message = preferences.getString(MedUtils.SCHEDULER_MESSAGES_PREF, "");
-                String feedbackAnswer = preferences.getString(MedUtils.SCHEDULER_FEEDBACK_ANSWERS_PREF, "");
-                String exec = preferences.getString(MedUtils.SCHEDULER_EXEC_PREF, "");
-                String execDel = preferences.getString(MedUtils.SCHEDULER_EXEC_DELETE_PREF, "");
-                //long contactId = preferences.getLong("ContactId", 0);
-                final ApiService service = ApiFac.getApiService();
-                SharedPreferences cookiePreferences = mContext.getSharedPreferences(MedUtils.COOKIE_PREF, 0);
-                final String cookie = cookiePreferences.getString(MedUtils.COOKIE_PREF, "");
-                ContentResolver contentResolver = mContext.getContentResolver();
-                if (!mes.isEmpty()) {
-                    /*List<UserMeasurement> sync = new MedDTO<UserMeasurement>()
-                            .getSync(new UserMeasurement(),
-                                    MedContract.UserMeasurement.CONTENT_URI,
-                                    MedContract.UserMeasurement.DEFAULT_PROJECTION,
-                                    mContext);
-                    */
+                List<UserMeasurement> syncAll = RealmHelper.getAll(Realm.getInstance(mContext), UserMeasurement.class);
+                if (syncAll.isEmpty()) {
+                    RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(mContext, true, syncAll);
+                    addMeasurement.execute();
                 }
             } else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
                 Log.d("app", "There's no network connectivity");

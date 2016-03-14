@@ -1,10 +1,12 @@
 package ru.l240.miband.realm;
 
+import android.support.annotation.NonNull;
+
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
-import ru.l240.miband.models.Profile;
+import io.realm.RealmResults;
 
 /**
  * @author Alexander Popov on 03.03.2016.
@@ -21,12 +23,17 @@ public class RealmHelper {
         realm.commitTransaction();
     }
 
+    public static <T extends RealmObject> void save(Realm realm, T data) {
+        realm.beginTransaction();
+        realm.copyToRealm(data);
+        realm.commitTransaction();
+    }
+
     public static <T extends RealmObject> void clear(Realm realm, Class<T> clazz) {
         realm.beginTransaction();
         realm.clear(clazz);
         realm.commitTransaction();
     }
-
 
 
 }

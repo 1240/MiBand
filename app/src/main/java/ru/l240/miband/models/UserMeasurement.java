@@ -1,7 +1,5 @@
 package ru.l240.miband.models;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.Date;
 
 import io.realm.RealmObject;
@@ -11,46 +9,10 @@ import io.realm.RealmObject;
  */
 public class UserMeasurement extends RealmObject {
 
-    private int id;
-    private String measurementComment;
-    private String measurementName;
-    private String measurementUnits;
     private String strValue;
     private long measurementId;
     private Date measurementDate;
-    private long measurementFieldId;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getMeasurementComment() {
-        return measurementComment;
-    }
-
-    public void setMeasurementComment(String measurementComment) {
-        this.measurementComment = measurementComment;
-    }
-
-    public String getMeasurementName() {
-        return measurementName;
-    }
-
-    public void setMeasurementName(String measurementName) {
-        this.measurementName = measurementName;
-    }
-
-    public String getMeasurementUnits() {
-        return measurementUnits;
-    }
-
-    public void setMeasurementUnits(String measurementUnits) {
-        this.measurementUnits = measurementUnits;
-    }
 
     public String getStrValue() {
         return strValue;
@@ -76,11 +38,4 @@ public class UserMeasurement extends RealmObject {
         this.measurementDate = measurementDate;
     }
 
-    public long getMeasurementFieldId() {
-        return measurementFieldId;
-    }
-
-    public void setMeasurementFieldId(long measurementFieldId) {
-        this.measurementFieldId = measurementFieldId;
-    }
 }

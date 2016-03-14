@@ -238,7 +238,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
             NotificationUtils utils = NotificationUtils.getInstance(getApplicationContext());
             try {
-                utils.createAlarmNotify(DateUtils.addMinutes(new Date(), 1));
+                utils.createAlarmNotify(DateUtils.addMinutes(new Date(), 1), NotificationUtils.MIN_5);
             } catch (ParseException e) {
                 e.printStackTrace();
             }

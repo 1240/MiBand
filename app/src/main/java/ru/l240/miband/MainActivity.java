@@ -10,12 +10,13 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -23,11 +24,10 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.UUID;
 
 import io.realm.Realm;
@@ -37,6 +37,9 @@ import ru.l240.miband.models.Profile;
 import ru.l240.miband.models.UserMeasurement;
 import ru.l240.miband.realm.RealmHelper;
 import ru.l240.miband.retrofit.RequestTaskAddMeasurement;
+import ru.l240.miband.utils.DateUtils;
+import ru.l240.miband.utils.MedUtils;
+import ru.l240.miband.utils.NotificationUtils;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class MainActivity extends AppCompatActivity {
@@ -77,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
             .fromString("0000ff0e-0000-1000-8000-00805f9b34fb");
     private static final UUID UUID_TEST = UUID
             .fromString("0000ff05-0000-1000-8000-00805f9b34fb");
+    private static final UUID UUID_ALERT = UUID
+            .fromString("00001802-0000-1000-8000-00805f9b34fb");
     private static final UUID hRService = UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb");
     private static final UUID UUID_NOTIF = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
     private static final UUID UUID_HR_MES = UUID.fromString("00002a39-0000-1000-8000-00805f9b34fb");
@@ -89,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothGatt mGatt;
     private TextView tvBattery;
     private TextView tvSteps;
+    private RelativeLayout relativeLayout;
     private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
 
         int state = 0;
@@ -97,14 +103,6 @@ public class MainActivity extends AppCompatActivity {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 pair();
-                BluetoothGattCharacteristic characteristicNotif = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF);
-                boolean b1 = mGatt.setCharacteristicNotification(characteristicNotif, true);
-                BluetoothGattCharacteristic characteristicNotif2 = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF);
-                characteristicNotif2.setValue(new byte[]{0x1,0x0});
-                boolean b = mGatt.writeCharacteristic(characteristicNotif2);
-                BluetoothGattDescriptor descriptor = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF).getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
-                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                boolean b2 = mGatt.writeDescriptor(descriptor);
             }
 
         }
@@ -139,6 +137,12 @@ public class MainActivity extends AppCompatActivity {
             // handle value
             if (uuid.equals(UUID_CHAR_REALTIME_STEPS)) {
                 miBand.setmSteps(0xff & b[0] | (0xff & b[1]) << 8);
+                BluetoothGattCharacteristic characteristicNotif = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF);
+                boolean b1 = mGatt.setCharacteristicNotification(characteristicNotif, true);
+                BluetoothGattDescriptor descriptor = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF).getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                boolean b3 = mGatt.writeDescriptor(descriptor);
+
                 update();
             } else if (uuid.equals(UUID_CHAR_BATTERY)) {
                 Battery battery = Battery.fromByte(b);
@@ -163,6 +167,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+/*
+        BluetoothGattCharacteristic characteristicUserInfo = getMiliService().getCharacteristic(UUID_CHAR_USER_INFO);
+        characteristicUserInfo.setValue("F8663A5F0126B45500040049676F7200000000DC");
+        boolean b4 = mGatt.writeCharacteristic(characteristicUserInfo);
+        System.out.println("characteristicUserInfo" + b4);*/
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
@@ -180,8 +189,17 @@ public class MainActivity extends AppCompatActivity {
                     measurement.setMeasurementId(3);
                     measurement.setMeasurementDate(new Date());
                     measurement.setStrValue(miBand.getmName());
-                    RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(getApplicationContext(), false, Collections.singletonList(measurement));
-                    addMeasurement.execute();
+                    if (MedUtils.isNetworkConnected(getApplicationContext())) {
+                        RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(getApplicationContext(), false, Collections.singletonList(measurement));
+                        addMeasurement.execute();
+                    } else {
+                        RealmHelper.save(Realm.getInstance(getApplicationContext()), measurement);
+                    }
+                    try {
+                        updateAlarm(hrValue);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                     update();
                 } else {
                     Log.d(TAG, "RECEIVED DATA WITH LENGTH: " + value.length);
@@ -198,8 +216,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION) {
+                System.out.println("HAVE PROBLEMS IN AUTH");
+            } else if (status == BluetoothGatt.GATT_SUCCESS) {
+
+                BluetoothGattCharacteristic characteristicNotif2 = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF);
+                characteristicNotif2.setValue(new byte[]{0x1, 0x0});
+                boolean b2 = mGatt.writeCharacteristic(characteristicNotif2);
+                System.out.println(b2);
+            }
+            super.onDescriptorWrite(gatt, descriptor, status);
+        }
     };
-    private RelativeLayout relativeLayout;
+    private BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -220,8 +252,31 @@ public class MainActivity extends AppCompatActivity {
         miBand.setmBTAddress(ADDRESS);
         mBluetoothManager = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE));
         mBluetoothAdapter = mBluetoothManager.getAdapter();
-        mBluetoothMi = mBluetoothAdapter.getRemoteDevice(ADDRESS);
+        if (mBluetoothAdapter == null) {
+            // Device does not support Bluetooth
+        } else {
+            if (!mBluetoothAdapter.isEnabled()) {
+                tv.setText("Пожалуйста включите Bluetooth!");
+                receiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        if (mBluetoothAdapter.isEnabled()) {
+                            mBluetoothMi = mBluetoothAdapter.getRemoteDevice(ADDRESS);
+                            mGatt = mBluetoothMi.connectGatt(MainActivity.this, true, mGattCallback);
+                            mGatt.connect();
+                            tv.setText("ИЩУ MIBAND 1S...");
+                        } else {
+                            tv.setText("Пожалуйста включите Bluetooth!");
+                        }
+                    }
+                };
+                this.registerReceiver(receiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+            } else {
+                mBluetoothMi = mBluetoothAdapter.getRemoteDevice(ADDRESS);
+            }
+        }
     }
+
 
     @Override
     protected void onResume() {
@@ -260,6 +315,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         if (mGatt != null) {
+            if (receiver != null)
+                unregisterReceiver(receiver);
             mGatt.disconnect();
             mGatt.close();
             mGatt = null;
@@ -281,7 +338,11 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                tv.setText("Пульс: " + miBand.getmName());
+                if (miBand.getmName() != null) {
+                    tv.setText("Пульс: " + miBand.getmName());
+                } else {
+                    tv.setText("Пульс не измерян.");
+                }
                 tvBattery.setText("Заряд: " + String.valueOf(miBand.getmBattery().mBatteryLevel));
                 tvSteps.setText("Шагов: " + miBand.getmSteps());
                 pb.setVisibility(View.INVISIBLE);
@@ -292,18 +353,54 @@ public class MainActivity extends AppCompatActivity {
     public void refresh(View view) {
         Log.d(TAG, "refreshing");
         BluetoothGattCharacteristic characteristicCP = mGatt.getService(hRService).getCharacteristic(UUID_HR_MES);
+        for (BluetoothGattService service : mGatt.getServices()) {
+            System.out.println(service.getUuid());
+            for (BluetoothGattCharacteristic ch : service.getCharacteristics()) {
+                System.out.println(ch.getUuid());
+                System.out.println(ch.getValue());
+                for (BluetoothGattDescriptor ds : ch.getDescriptors()) {
+                    System.out.println(ds.getUuid());
+                    System.out.println(ds.getValue());
+                }
+            }
+        }
 //        BluetoothGattCharacteristic characteristicNot = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF);
 //        characteristicNot.setValue(new byte[]{0x1, 0x0});
 //        mGatt.writeCharacteristic(characteristicNot);
         characteristicCP.setValue(startHeartMeasurementManual);
         boolean b = mGatt.writeCharacteristic(characteristicCP);
-        tv.setText("Измеряю пульс...");
+        try {
+            NotificationUtils.getInstance(this).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addMinutes(new Date(), 1), NotificationUtils.MIN_5);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        tv.setText("Измеряю пульс..." + b);
     }
 
     public void vibrate(View view) {
-        BluetoothGattCharacteristic characteristic1 = mGatt.getService(UUID.fromString("00001802-0000-1000-8000-00805f9b34fb")).getCharacteristic(UUID.fromString("00002a06-0000-1000-8000-00805f9b34fb"));
+        BluetoothGattCharacteristic characteristic1 = mGatt.getService(UUID_ALERT).getCharacteristic(UUID.fromString("00002a06-0000-1000-8000-00805f9b34fb"));
         characteristic1.setValue(new byte[]{0x01});
         mGatt.writeCharacteristic(characteristic1);
 
+    }
+
+    private void updateAlarm(Integer value) throws ParseException {
+        if (value >= 60 && value <= 90) {
+            NotificationUtils.getInstance(this).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addMinutes(new Date(), 1), NotificationUtils.MIN_5);
+            return;
+        }
+        if ((value >= 91 && value <= 120) || (value >= 46 && value <= 59)) {
+            NotificationUtils.getInstance(this).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addMinutes(new Date(), 1), NotificationUtils.MIN_2);
+            return;
+        }
+        if (value >= 121 || value <= 45) {
+            NotificationUtils.getInstance(this).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addMinutes(new Date(), 1), NotificationUtils.MIN_1);
+            return;
+        }
     }
 }

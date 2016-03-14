@@ -22,7 +22,9 @@ import ru.l240.miband.R;
 public class NotificationUtils {
 
     private static final String TAG = NotificationUtils.class.getSimpleName();
-
+    public static final Integer MIN_2 = 120000;
+    public static final Integer MIN_1 = 60000;
+    public static final Integer MIN_5 = 300000;
     private static NotificationUtils instance;
 
     private static Context context;
@@ -76,58 +78,12 @@ public class NotificationUtils {
         manager.cancelAll();
     }
 
-    /*public List<PrescriptionItem> getEarlestNotify(Date date) {
-        Date compareDate = null;
-        DBHelper dbHelper = new DBHelper(context);
-        List<PrescriptionItem> prescriptionsForDay = dbHelper.getPrescriptionsForDay(date);
-        List<PrescriptionItem> result = new ArrayList<>();
-
-        if (prescriptionsForDay.isEmpty()) {
-            date = DateUtils.addDays(date, 1);
-            prescriptionsForDay = dbHelper.getPrescriptionsForDay(date);
-            if (prescriptionsForDay.isEmpty()) return result;
-        }
-
-        for (PrescriptionItem item : prescriptionsForDay) {
-            try {
-                Date execDate = new SimpleDateFormat("dd.MM.yyyy HH")
-                        .parse(new SimpleDateFormat("dd.MM.yyyy ").format(date)
-                                + item.getTemplate().getHour());
-                if (dbHelper.getAllPrescrExecutionsByPrescId(item.getTemplate().getPrescrId(), date, item.getTemplate().getExecNum()) == null &&
-                        !execDate.before(date)) {
-                    if (compareDate == null)
-                        compareDate = execDate;
-                    if (compareDate.equals(execDate)) {
-                        date = new SimpleDateFormat("dd.MM.yyyy HH").parse(new SimpleDateFormat("dd.MM.yyyy ").format(execDate) + item.getTemplate().getHour());
-                        item.getTemplate().setHour(item.getTemplate().getHour());
-                        result.add(item);
-                    }
-                }
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-        return result;
-    }
-
-    public void createNotify() throws ParseException {
-        NotificationUtils notificationUtils = NotificationUtils.getInstance(context);
-        notificationUtils.cancelAllNotifications();
-        List<PrescriptionItem> earlestNotify = getEarlestNotify(DateUtils.addMinutes(new Date(), -5));
-        for (PrescriptionItem prescriptionItem : earlestNotify) {
-            Integer hour = prescriptionItem.getTemplate().getHour();
-            Date execDate =  (new Date().before(DateUtils.setHours(new Date(), hour))) ? new Date() :  DateUtils.addDays(new Date(), 1);
-            Date date = new SimpleDateFormat("dd.MM.yyyy HH").parse(new SimpleDateFormat("dd.MM.yyyy ").format(execDate) + hour);
-            notificationUtils.createInfoNotification(prescriptionItem.getDescription(), date);
-        }
-    }
-*/
-    public void createAlarmNotify(Date date) throws ParseException {
+    public void createAlarmNotify(Date date, Integer min) throws ParseException {
         Intent intent = new Intent(context, AlarmNotificationService.class);
         lastAlarmId++;
         PendingIntent pintent = PendingIntent.getService(context, lastAlarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), 60000, pintent);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), min, pintent);
     }
 
     public void cancelAllAlarmNotify() {

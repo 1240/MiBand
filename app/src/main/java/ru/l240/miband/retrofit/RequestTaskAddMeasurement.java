@@ -88,7 +88,7 @@ public class RequestTaskAddMeasurement extends AsyncTask<Void, Void, Boolean> {
             jsonObject.put("measurementFieldId", userMes.getMeasurementId());
             jsonObject.put("measurementDate", simpleDateFormat.format(userMes.getMeasurementDate()));
             jsonObject.put("measurementValue", userMes.getStrValue());
-            jsonObject.put("measurementComment", "");
+            jsonObject.put("measurementComment", "From MI Band");
             jsonArray.put(jsonObject);
 
 

@@ -17,12 +17,15 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.Realm;
 import ru.l240.miband.models.UserMeasurement;
+import ru.l240.miband.realm.RealmHelper;
 import ru.l240.miband.retrofit.RequestTaskAddMeasurement;
 
 /**
@@ -84,12 +87,9 @@ public class AlarmNotificationService extends Service {
                 pair();
                 BluetoothGattCharacteristic characteristicNotif = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF);
                 boolean b1 = mGatt.setCharacteristicNotification(characteristicNotif, true);
-                BluetoothGattCharacteristic characteristicNotif2 = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF);
-                characteristicNotif2.setValue(new byte[]{0x1, 0x0});
-                boolean b = mGatt.writeCharacteristic(characteristicNotif2);
                 BluetoothGattDescriptor descriptor = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF).getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
                 descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                boolean b2 = mGatt.writeDescriptor(descriptor);
+                boolean b3 = mGatt.writeDescriptor(descriptor);
             }
 
         }
@@ -106,6 +106,19 @@ public class AlarmNotificationService extends Service {
         public void onCharacteristicWrite(BluetoothGatt gatt,
                                           BluetoothGattCharacteristic characteristic, int status) {
 
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION) {
+                Log.d(TAG, "HAVE PROBLEMS IN AUTH");
+            } else if (status == BluetoothGatt.GATT_SUCCESS) {
+                BluetoothGattCharacteristic characteristicNotif2 = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF);
+                characteristicNotif2.setValue(new byte[]{0x1, 0x0});
+                boolean b2 = mGatt.writeCharacteristic(characteristicNotif2);
+                Log.d(TAG, String.valueOf(b2));
+            }
+            super.onDescriptorWrite(gatt, descriptor, status);
         }
 
         @Override
@@ -144,8 +157,22 @@ public class AlarmNotificationService extends Service {
                     measurement.setMeasurementId(3);
                     measurement.setMeasurementDate(new Date());
                     measurement.setStrValue(String.valueOf(hrValue));
-                    RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(getApplicationContext(), false, Collections.singletonList(measurement));
-                    addMeasurement.execute();
+                    if (MedUtils.isNetworkConnected(getApplicationContext())) {
+                        RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(getApplicationContext(), false, Collections.singletonList(measurement));
+                        addMeasurement.execute();
+                    } else {
+                        RealmHelper.save(Realm.getInstance(getApplicationContext()), measurement);
+                    }
+                    try {
+                        updateAlarm(hrValue);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    if (mGatt != null) {
+                        mGatt.disconnect();
+                        mGatt.close();
+                        mGatt = null;
+                    }
                 } else {
                     Log.d(TAG, "RECEIVED DATA WITH LENGTH: " + value.length);
                     for (byte b : value) {
@@ -180,14 +207,24 @@ public class AlarmNotificationService extends Service {
                 mGatt.connect();
             }
             Log.d(TAG, "refreshing");
-            while (mGatt == null) {
+            int time = 0;
+            while (mGatt == null || mGatt.getService(hRService) == null) {
+                if (time >= 10)
+                    throw new NullPointerException("MGatt is null");
                 Thread.sleep(1000L);
+                time++;
             }
             BluetoothGattCharacteristic characteristicCP = mGatt.getService(hRService).getCharacteristic(UUID_HR_MES);
             characteristicCP.setValue(startHeartMeasurementManual);
-            boolean b = mGatt.writeCharacteristic(characteristicCP);
-//            utils.createAlarmNotify(DateUtils.addMinutes(new Date(), 1));
+            boolean b = false;
+            while (!b) {
+                b = mGatt.writeCharacteristic(characteristicCP);
+                Thread.sleep(1000L);
+            }
             Log.d(TAG, "Измеряю пульс...");
+
+        } catch (NullPointerException e) {
+//            NotificationUtils.getInstance(getApplicationContext()).createInfoNotification("Потеря связи с браслетом! Проверьте Bluetooth и заряд браслета.", new Date());
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -210,4 +247,31 @@ public class AlarmNotificationService extends Service {
         Log.d(TAG, "Браслет найден. Синхронизиоруюсь...");
     }
 
+    private void updateAlarm(Integer value) throws ParseException {
+        if (value >= 60 && value <= 90) {
+            NotificationUtils.getInstance(this).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addMinutes(new Date(), 1), NotificationUtils.MIN_5);
+            return;
+        }
+        if ((value >= 91 && value <= 120) || (value >= 46 && value <= 59)) {
+            NotificationUtils.getInstance(this).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addMinutes(new Date(), 1), NotificationUtils.MIN_2);
+            return;
+        }
+        if (value >= 121 || value <= 45) {
+            NotificationUtils.getInstance(this).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addMinutes(new Date(), 1), NotificationUtils.MIN_1);
+            return;
+        }
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return super.onUnbind(intent);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 }

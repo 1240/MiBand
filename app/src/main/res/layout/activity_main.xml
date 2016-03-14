@@ -11,7 +11,6 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:onClick="refresh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@mipmap/android_avatar" />
@@ -23,6 +22,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:gravity="center"
+        android:onClick="refresh"
         android:text="ИЩУ MIBAND 1S..."
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
