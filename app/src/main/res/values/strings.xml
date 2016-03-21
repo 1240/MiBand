@@ -23,5 +23,8 @@
     <string name="signin">Sign in</string>
     <string name="logo_title">Personal instant medical assistant</string>
     <string name="login_check_internet">Pls check internet connection</string>
+    <string name="psl_ble_on">Пожалуйста включите Bluetooth!</string>
+    <string name="finding_ble">ИЩУ MIBAND 1S...</string>
+    <string name="not_support">Device does not support Bluetooth</string>
 
 </resources>

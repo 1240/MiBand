@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
-import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -21,10 +20,10 @@ import ru.l240.miband.R;
  */
 public class NotificationUtils {
 
+    public static final Integer MIN_2 = 2;
+    public static final Integer MIN_1 = 1;
+    public static final Integer MIN_5 = 5;
     private static final String TAG = NotificationUtils.class.getSimpleName();
-    public static final Integer MIN_2 = 120000;
-    public static final Integer MIN_1 = 60000;
-    public static final Integer MIN_5 = 300000;
     private static NotificationUtils instance;
 
     private static Context context;
@@ -51,39 +50,12 @@ public class NotificationUtils {
         return instance;
     }
 
-    public int createInfoNotification(String message, Date when) {
-        Intent notificationIntent = new Intent(context, MainActivity.class);
-        NotificationCompat.Builder nb = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.mipmap.android_avatar) //ic_launcher_nuffield //ic_launcher_remsmed
-                .setAutoCancel(true)
-                .setTicker(message)
-                .setContentText(message)
-                .setContentIntent(PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT))
-                .setWhen(when.getTime())
-                .setShowWhen(true)
-                .setContentTitle(context.getResources().getString(R.string.app_name))
-                .setDefaults(Notification.DEFAULT_ALL);
-
-        Notification notification = nb.getNotification();
-        manager.notify(lastNotifId, notification);
-        notifications.put(lastNotifId, notification);
-        return lastNotifId++;
-    }
-
-    public void cancelInfoNotification(Integer id) {
-        manager.cancel(id);
-    }
-
-    public void cancelAllNotifications() {
-        manager.cancelAll();
-    }
-
-    public void createAlarmNotify(Date date, Integer min) throws ParseException {
+    public void createAlarmNotify(Date date) {
         Intent intent = new Intent(context, AlarmNotificationService.class);
-        lastAlarmId++;
         PendingIntent pintent = PendingIntent.getService(context, lastAlarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        lastAlarmId++;
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), min, pintent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pintent);
     }
 
     public void cancelAllAlarmNotify() {
@@ -93,6 +65,7 @@ public class NotificationUtils {
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(pintent);
         }
+        lastAlarmId = 0;
     }
 
 }
