@@ -148,7 +148,8 @@ public class BleSingleton {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION) {
-                System.out.println("HAVE PROBLEMS IN AUTH");
+                Log.d(TAG, "HAVE PROBLEMS IN AUTH");
+                throw new NullPointerException();
             } else if (status == BluetoothGatt.GATT_SUCCESS) {
                 callback("Синхронизация завершена!");
             }
