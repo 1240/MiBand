@@ -12,18 +12,10 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
-import io.realm.Realm;
-import ru.l240.miband.models.UserMeasurement;
-import ru.l240.miband.realm.RealmHelper;
-import ru.l240.miband.retrofit.RequestTaskAddMeasurement;
 import ru.l240.miband.utils.DateUtils;
-import ru.l240.miband.utils.MedUtils;
 import ru.l240.miband.utils.NotificationUtils;
 
 /**
@@ -72,7 +64,7 @@ public class BleSingleton {
     private static final UUID UUID_NOTIF = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
     private static final UUID UUID_HR_MES = UUID.fromString("00002a39-0000-1000-8000-00805f9b34fb");
     private static BleSingleton mInstance;
-    private List<BleCallback> callbackList = new ArrayList<>();
+    private BleCallback bleCallback;
     private BluetoothDevice mBluetoothMi;
     private BluetoothGatt mGatt;
     private Context context;
@@ -88,7 +80,7 @@ public class BleSingleton {
                 BluetoothGattDescriptor descriptor = mGatt.getService(hRService).getCharacteristic(UUID_NOTIF).getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
                 descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                 boolean b3 = mGatt.writeDescriptor(descriptor);
-                pair();
+//                pair();
 //                callback("Синхронизируюсь...");
 
             }
@@ -125,9 +117,7 @@ public class BleSingleton {
                 if (value.length == 2 && value[0] == 6) {
                     int hrValue = (value[1] & 0xff);
                     Log.d(TAG, String.valueOf(hrValue));
-
-
-                    callbackHR("Пульс: " + hrValue);
+                    callbackHR(String.valueOf(hrValue));
                     updateAlarm(hrValue);
                 } else {
                     Log.d(TAG, "RECEIVED DATA WITH LENGTH: " + value.length);
@@ -188,7 +178,7 @@ public class BleSingleton {
 
     public void connect() {
         if (mBluetoothMi != null) {
-            mGatt = mBluetoothMi.connectGatt(context, true, mGattCallback);
+            mGatt = mBluetoothMi.connectGatt(context, false, mGattCallback);
             mGatt.connect();
         }
     }
@@ -200,26 +190,20 @@ public class BleSingleton {
     }
 
     public void updateAlarm(Integer value) {
-        UserMeasurement measurement = new UserMeasurement();
-        measurement.setMeasurementId(3);
-        measurement.setMeasurementDate(new Date());
-        measurement.setStrValue(String.valueOf(value));
-        if (MedUtils.isNetworkConnected(context)) {
-            RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(context, false, Collections.singletonList(measurement));
-            addMeasurement.execute();
-        } else {
-            RealmHelper.save(Realm.getInstance(context), measurement);
-        }
+
         if (value >= 60 && value <= 90) {
-            NotificationUtils.getInstance(context).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_2));
+            NotificationUtils.getInstance(context).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(context).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_2), NotificationUtils.MIN_2);
             return;
         }
         if ((value >= 91 && value <= 120) || (value >= 46 && value <= 59)) {
-            NotificationUtils.getInstance(context).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_5));
+            NotificationUtils.getInstance(context).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(context).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_5), NotificationUtils.MIN_5);
             return;
         }
         if (value >= 121 || value <= 45) {
-            NotificationUtils.getInstance(context).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_2));
+            NotificationUtils.getInstance(context).cancelAllAlarmNotify();
+            NotificationUtils.getInstance(context).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_2), NotificationUtils.MIN_2);
             return;
         }
     }
@@ -248,24 +232,19 @@ public class BleSingleton {
     }
 
     private void callback(String data) {
-        for (BleCallback callback : callbackList) {
-            callback.callback(data);
-        }
+        bleCallback.callback(data);
     }
 
     private void callbackHR(String data) {
-        for (BleCallback callback : callbackList) {
-            callback.callbackHR(data);
-        }
+        bleCallback.callbackHR(data);
     }
 
 
-    public void addCallback(BleCallback callback) {
-        callbackList.add(callback);
+    public void setCallback(BleCallback callback) {
+        bleCallback = callback;
     }
 
-    public void disconnect(BleCallback callback) {
-        callbackList.remove(callback);
+    public void disconnect() {
         if (mGatt != null) {
             mGatt.disconnect();
             mGatt.close();

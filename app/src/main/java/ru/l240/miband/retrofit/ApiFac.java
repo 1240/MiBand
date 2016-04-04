@@ -21,8 +21,10 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmObject;
+import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -87,11 +89,18 @@ public class ApiFac {
         /*CookieHandler.setDefault(mCookieManager);
         mCookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CLIENT.setCookieHandler(mCookieManager);*/
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(5, TimeUnit.MINUTES)
+                .readTimeout(5, TimeUnit.MINUTES)
+                .build();
         Retrofit.Builder builder = new Retrofit.Builder()
-                .baseUrl("http://stacionar.fors-vyatka.ru/iapp/")
-                .addConverterFactory(GsonConverterFactory.create(GSON));
-//                .client(CLIENT);
+                .baseUrl("http://intelimed.fors-vyatka.ru/iapp/")
+                .addConverterFactory(GsonConverterFactory.create(GSON))
+                .client(client);
         return builder.build();
     }
+
+
 
 }

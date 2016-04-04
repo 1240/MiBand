@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MiBand</string>
+    <string name="app_name">RemsmedBand</string>
     <string name="title_activity_login">Sign in</string>
 
     <!-- Strings related to login -->
@@ -17,7 +17,7 @@
 
     <string name="login_string">Login…</string>
     <string name="password_string">Password…</string>
-    <string name="url">http://stacionar.fors-vyatka.ru/iapp</string>
+    <string name="url">http://intelimed.fors-vyatka.ru/iapp</string>
     <string name="login">Login...</string>
     <string name="password">Password...</string>
     <string name="signin">Sign in</string>

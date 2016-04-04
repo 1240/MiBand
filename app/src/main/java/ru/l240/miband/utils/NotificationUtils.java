@@ -6,7 +6,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -27,7 +29,6 @@ public class NotificationUtils {
     private static NotificationUtils instance;
 
     private static Context context;
-    private static int lastAlarmId = 0;
     private NotificationManager manager;
     private int lastNotifId = 0;
     private HashMap<Integer, Notification> notifications;
@@ -50,22 +51,28 @@ public class NotificationUtils {
         return instance;
     }
 
-    public void createAlarmNotify(Date date) {
+    public void createAlarmNotify(Date date, int repeating) {
         Intent intent = new Intent(context, AlarmNotificationService.class);
-        PendingIntent pintent = PendingIntent.getService(context, lastAlarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int lastAlarmId = PrefUtils.getLastAlarmId(context);
         lastAlarmId++;
+        PendingIntent pintent = PendingIntent.getService(context, lastAlarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pintent);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), repeating * 60000, pintent);
+        PrefUtils.saveAlarmId(context, lastAlarmId);
+        Log.d(TAG, "createAlarmNotify");
     }
 
     public void cancelAllAlarmNotify() {
         Intent intent = new Intent(context, AlarmNotificationService.class);
+        int lastAlarmId = PrefUtils.getLastAlarmId(context);
         for (int i = 0; i < lastAlarmId; i++) {
             PendingIntent pintent = PendingIntent.getService(context, lastAlarmId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            pintent.cancel();
             alarmManager.cancel(pintent);
         }
-        lastAlarmId = 0;
+        PrefUtils.saveAlarmId(context, 0);
+        Log.d(TAG, "cancelAllAlarmNotify");
     }
 
 }

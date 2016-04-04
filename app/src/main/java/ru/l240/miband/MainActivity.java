@@ -10,10 +10,8 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.Date;
@@ -95,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         };
-        bleSingleton.addCallback(callback);
+        bleSingleton.setCallback(callback);
     }
 
 
@@ -108,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        bleSingleton.disconnect(callback);
+        bleSingleton.disconnect();
         if (receiver != null)
             unregisterReceiver(receiver);
     }
@@ -116,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
     public void refresh(View view) {
         tv.setText("Таймер установлен.");
         NotificationUtils.getInstance(this).cancelAllAlarmNotify();
-        NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addSeconds(new Date(), 1));
+        NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addSeconds(new Date(), 5), NotificationUtils.MIN_5);
         /*try {
             bleSingleton.measure();
         } catch (InterruptedException e) {

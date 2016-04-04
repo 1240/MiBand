@@ -1,32 +1,23 @@
 package ru.l240.miband.retrofit;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-
-import com.google.gson.annotations.SerializedName;
 
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
 import retrofit2.Call;
-import ru.l240.miband.R;
 import ru.l240.miband.models.Login;
 import ru.l240.miband.models.Measurement;
-import ru.l240.miband.models.MeasurementField;
 import ru.l240.miband.models.Profile;
 import ru.l240.miband.realm.RealmHelper;
 import ru.l240.miband.retrofit.response.MedResponse;
 import ru.l240.miband.retrofit.response.RequestResult;
 import ru.l240.miband.retrofit.response.Response;
-import ru.l240.miband.utils.HttpUtils;
 import ru.l240.miband.utils.MedUtils;
 
 
@@ -56,10 +47,10 @@ public class LoginLoader extends BaseLoader {
             editor.putString(MedUtils.COOKIE_PREF, cookie);
             editor.commit();
             //save profile
+            service = ApiFac.getApiService();
             Call<Profile> call = service.getCurrentUser(cookie);
             profile = call.execute().body();
             RealmHelper.save(Realm.getInstance(getContext()), Collections.singletonList(profile));
-//            dbHelper.createProfile(profile);
 
             Call<List<Measurement>> getMeasurementsDictionary = service.getMeasurementsDictionary(cookie);
             List<Measurement> measurements = getMeasurementsDictionary.execute().body();

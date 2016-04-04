@@ -35,7 +35,7 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
             if (ni != null && ni.getState() == NetworkInfo.State.CONNECTED) {
                 Log.i("app", "Network " + ni.getTypeName() + " connected");
                 List<UserMeasurement> syncAll = RealmHelper.getAll(Realm.getInstance(mContext), UserMeasurement.class);
-                if (syncAll.isEmpty()) {
+                if (!syncAll.isEmpty()) {
                     RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(mContext, true, syncAll);
                     addMeasurement.execute();
                 }

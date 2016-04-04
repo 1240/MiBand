@@ -34,37 +34,15 @@ public abstract class BaseLoader extends AsyncTaskLoader<Response> {
         try {
             Response response = apiCall();
             if (response.getRequestResult() == RequestResult.SUCCESS) {
-                response.save(getContext());
                 onSuccess();
             } else {
                 onError();
             }
             return response;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             onError();
             return new Response();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            onError();
-            ApiService service = ApiFac.getApiService();
-            SharedPreferences loginPreferences = getContext().getSharedPreferences("LOGIN", 0);
-            String login = loginPreferences.getString(MedUtils.LOGIN_PREF, "");
-            String pass = loginPreferences.getString(MedUtils.PASS_PREF, "");
-            Call<JSONObject> authorize = service.authorize(new Login(login, pass));
-            authorize.enqueue(new RetrofitCallback<JSONObject>() {
-                @Override
-                public void onResponse(Call<JSONObject> call, retrofit2.Response<JSONObject> response) {
-                    String cookie = response.raw().header("Set-Cookie");
-                    SharedPreferences cookiePreferences = getContext().getSharedPreferences(MedUtils.COOKIE_PREF, 0);
-                    SharedPreferences.Editor editor = cookiePreferences.edit();
-                    editor.putString(MedUtils.COOKIE_PREF, cookie);
-                    editor.commit();
-                    super.onResponse(call, response);
-                }
-            });
-            return new Response();
-
         }
     }
 
