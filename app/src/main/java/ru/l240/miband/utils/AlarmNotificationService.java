@@ -10,6 +10,8 @@ import java.util.Date;
 import io.realm.Realm;
 import ru.l240.miband.BleCallback;
 import ru.l240.miband.BleSingleton;
+import ru.l240.miband.MiApplication;
+import ru.l240.miband.gadgetbridge.impl.GBDeviceService;
 import ru.l240.miband.models.UserMeasurement;
 import ru.l240.miband.realm.RealmHelper;
 import ru.l240.miband.retrofit.RequestTaskAddMeasurement;
@@ -27,49 +29,9 @@ public class AlarmNotificationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        try {
-            final BleSingleton bleSingleton = BleSingleton.getInstance(getApplicationContext());
-            final BleCallback callback = new BleCallback() {
-                @Override
-                protected void callback(String data) {
-                    try {
-                        bleSingleton.measure();
-                    } catch (InterruptedException e) {
-//                        NotificationUtils.getInstance(AlarmNotificationService.this).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_5), NotificationUtils.MIN_5);
-                        Log.d(TAG, "error");
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                protected void callbackHR(String data) {
-                    UserMeasurement measurement = new UserMeasurement();
-                    measurement.setMeasurementId(3);
-                    measurement.setMeasurementDate(new Date());
-                    measurement.setStrValue(String.valueOf(data));
-                    if (MedUtils.isNetworkConnected(getApplicationContext())) {
-                        RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(getApplicationContext(), false, Collections.singletonList(measurement)) {
-                            @Override
-                            protected void onPostExecute(Boolean success) {
-                                super.onPostExecute(success);
-                                bleSingleton.disconnect();
-                            }
-                        };
-                        addMeasurement.execute();
-                    } else {
-                        RealmHelper.save(Realm.getInstance(getApplicationContext()), measurement);
-                        bleSingleton.disconnect();
-                    }
-                }
-            };
-            bleSingleton.setCallback(callback);
-            bleSingleton.init();
-            bleSingleton.connect();
-            return;
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d(TAG, "error");
-//            NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_5), NotificationUtils.MIN_5);
-        }
+        String address = PrefUtils.getAddress(getApplicationContext());
+        MiApplication.deviceService().start();
+        MiApplication.deviceService().requestDeviceInfo();
+        MiApplication.deviceService().connect(address);
     }
 }

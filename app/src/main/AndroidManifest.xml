@@ -7,20 +7,29 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
+
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
 
     <application
+        android:name=".MiApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_hr"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/l24o">
+        android:theme="@style/Theme.AppCompat">
+        <!--android:theme="@style/l24o">-->
         <receiver android:name=".utils.receivers.ConnectionChangeReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
-        <service android:name=".utils.AlarmNotificationService" android:enabled="true"/>
+        <service android:name=".gadgetbridge.service.DeviceCommunicationService" />
+        <service
+            android:name=".utils.AlarmNotificationService"
+            android:enabled="true" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,7 +40,11 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login"
-            android:windowSoftInputMode="adjustPan"/>
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".DeviceScanActivity"
+            android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
+            android:label="@string/title_devices"/>
     </application>
 
 </manifest>

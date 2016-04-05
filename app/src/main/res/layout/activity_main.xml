@@ -27,15 +27,15 @@
         android:gravity="center"
         android:textColor="@color/actionbar_font_color"
         android:onClick="refresh"
-        android:text="ИЩУ MIBAND 1S..."
+        android:text="Обновить таймер"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <ProgressBar
+    <!--<ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentStart="false"
         android:layout_alignParentBottom="false"
-        android:layout_alignParentTop="false" />
+        android:layout_alignParentTop="false" />-->
 
 </RelativeLayout>

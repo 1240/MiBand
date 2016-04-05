@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import ru.l240.miband.utils.DateUtils;
 import ru.l240.miband.utils.NotificationUtils;
+import ru.l240.miband.utils.PrefUtils;
 
 /**
  * Created by l24o on 21.03.16.
@@ -31,7 +32,7 @@ public class BleSingleton {
             "com.example.bluetooth.le.EXTRA_DATA";
     public final static UUID UUID_HEART_RATE_MEASUREMENT =
             UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
-    public static final String ADDRESS = "C8:0F:10:32:11:17";
+//    public static final String ADDRESS = "C8:0F:10:32:11:17";
     static final byte[] startHeartMeasurementManual = new byte[]{0x15, COMMAND_SET_HR_MANUAL, 1};
     static final byte[] stopHeartMeasurementManual = new byte[]{0x15, COMMAND_SET_HR_MANUAL, 0};
     static final byte[] stopHeartMeasurementContinuous = new byte[]{0x15, COMMAND_SET__HR_CONTINUOUS, 0};
@@ -173,13 +174,14 @@ public class BleSingleton {
     public void init() {
         BluetoothManager mBluetoothManager = ((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE));
         BluetoothAdapter mBluetoothAdapter = mBluetoothManager.getAdapter();
-        mBluetoothMi = mBluetoothAdapter.getRemoteDevice(ADDRESS);
+        String address = PrefUtils.getAddress(context);
+        mBluetoothMi = mBluetoothAdapter.getRemoteDevice(address);
     }
 
     public void connect() {
         if (mBluetoothMi != null) {
             mGatt = mBluetoothMi.connectGatt(context, false, mGattCallback);
-            mGatt.connect();
+//            mGatt.connect();
         }
     }
 

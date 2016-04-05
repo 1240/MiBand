@@ -1,0 +1,20 @@
+package ru.l240.miband.gadgetbridge.service.deviceevents;
+
+
+import java.util.GregorianCalendar;
+
+import ru.l240.miband.gadgetbridge.model.BatteryState;
+
+public class GBDeviceEventBatteryInfo extends GBDeviceEvent {
+    public GregorianCalendar lastChargeTime = null;
+    public BatteryState state = BatteryState.UNKNOWN;
+    public short level = 50;
+    public int numCharges = -1;
+
+    public boolean extendedInfoAvailable() {
+        if (numCharges != -1 && lastChargeTime != null) {
+            return true;
+        }
+        return false;
+    }
+}

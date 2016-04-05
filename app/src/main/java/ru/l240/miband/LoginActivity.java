@@ -3,6 +3,8 @@ package ru.l240.miband;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -235,8 +237,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         showProgress(false);
         getSupportLoaderManager().destroyLoader(loader.getId());
         if (data.getRequestResult().equals(RequestResult.SUCCESS)) {
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-            NotificationUtils utils = NotificationUtils.getInstance(getApplicationContext());
+            Intent intent = new Intent(getApplicationContext(), DeviceScanActivity.class);
             startActivity(intent);
             finish();
         } else {
