@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             return;
         }
+//        PrefUtils.saveAddress(getApplicationContext(), "C8:0F:10:32:11:17");
         if (PrefUtils.getAddress(getApplicationContext()).isEmpty()) {
             Intent intent = new Intent(this, DeviceScanActivity.class);
             startActivity(intent);

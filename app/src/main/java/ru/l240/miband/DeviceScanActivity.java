@@ -109,7 +109,7 @@ public class DeviceScanActivity extends ListActivity {
         BluetoothDevice bluetoothDevice = mLeDeviceListAdapter.getDevice(position);
         PrefUtils.saveAddress(getApplicationContext(), bluetoothDevice.getAddress());
         MiApplication.deviceService().start();
-        MiApplication.deviceService().connect(bluetoothDevice.getAddress());
+        MiApplication.deviceService().connect(bluetoothDevice.getAddress(), true);
 //        PrefUtils.saveAddress(getApplicationContext(), bluetoothDevice.getAddress());
 //        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
 //        startActivity(intent);

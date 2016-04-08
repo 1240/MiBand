@@ -5,11 +5,10 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import io.realm.Realm;
+import ru.l240.miband.MiApplication;
 import ru.l240.miband.R;
 import ru.l240.miband.gadgetbridge.devices.MiBandCoordinator;
 import ru.l240.miband.gadgetbridge.devices.miband.MiBandDateConverter;
@@ -55,27 +55,52 @@ import ru.l240.miband.utils.DateTimeUtils;
 import ru.l240.miband.utils.DateUtils;
 import ru.l240.miband.utils.MedUtils;
 import ru.l240.miband.utils.NotificationUtils;
-import ru.l240.miband.utils.PrefUtils;
 
-import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.*;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.DEFAULT_VALUE_FLASH_COLOUR;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.DEFAULT_VALUE_FLASH_COUNT;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.DEFAULT_VALUE_FLASH_DURATION;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.DEFAULT_VALUE_FLASH_ORIGINAL_COLOUR;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.DEFAULT_VALUE_VIBRATION_COUNT;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.DEFAULT_VALUE_VIBRATION_DURATION;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.DEFAULT_VALUE_VIBRATION_PAUSE;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.DEFAULT_VALUE_VIBRATION_PROFILE;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.FLASH_COLOUR;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.FLASH_COUNT;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.FLASH_DURATION;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.FLASH_ORIGINAL_COLOUR;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.ORIGIN_GENERIC;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.ORIGIN_INCOMING_CALL;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.PREF_MIBAND_RESERVE_ALARM_FOR_CALENDAR;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.VIBRATION_COUNT;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.VIBRATION_DURATION;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.VIBRATION_PAUSE;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.VIBRATION_PROFILE;
 import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.getNotificationPrefIntValue;
+import static ru.l240.miband.gadgetbridge.devices.miband.MiBandConst.getNotificationPrefStringValue;
 
 
 public class MiBandSupport extends AbstractBTLEDeviceSupport {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MiBandSupport.class);
     /**
      * This is just for temporary testing of Mi1A double firmware update.
      * DO NOT SET TO TRUE UNLESS YOU KNOW WHAT YOU'RE DOING!
      */
     public static final boolean MI_1A_HR_FW_UPDATE_TEST_MODE_ENABLED = false;
-    private volatile boolean telephoneRinging;
-    private volatile boolean isLocatingDevice;
-
-    private DeviceInfo mDeviceInfo;
-
+    public static final String TAG = MiBandSupport.class.getSimpleName();
+    static final byte[] reboot = new byte[]{MiBandService.COMMAND_REBOOT};
+    static final byte[] startHeartMeasurementManual = new byte[]{0x15, MiBandService.COMMAND_SET_HR_MANUAL, 1};
+    static final byte[] stopHeartMeasurementManual = new byte[]{0x15, MiBandService.COMMAND_SET_HR_MANUAL, 0};
+    static final byte[] startHeartMeasurementContinuous = new byte[]{0x15, MiBandService.COMMAND_SET__HR_CONTINUOUS, 1};
+    static final byte[] stopHeartMeasurementContinuous = new byte[]{0x15, MiBandService.COMMAND_SET__HR_CONTINUOUS, 0};
+    static final byte[] startHeartMeasurementSleep = new byte[]{0x15, MiBandService.COMMAND_SET_HR_SLEEP, 1};
+    static final byte[] stopHeartMeasurementSleep = new byte[]{0x15, MiBandService.COMMAND_SET_HR_SLEEP, 0};
+    static final byte[] startRealTimeStepsNotifications = new byte[]{MiBandService.COMMAND_SET_REALTIME_STEPS_NOTIFICATION, 1};
+    static final byte[] stopRealTimeStepsNotifications = new byte[]{MiBandService.COMMAND_SET_REALTIME_STEPS_NOTIFICATION, 0};
     private final GBDeviceEventVersionInfo versionCmd = new GBDeviceEventVersionInfo();
     private final GBDeviceEventBatteryInfo batteryCmd = new GBDeviceEventBatteryInfo();
+    private volatile boolean telephoneRinging;
+    private volatile boolean isLocatingDevice;
+    private DeviceInfo mDeviceInfo;
 
     public MiBandSupport() {
         addSupportedService(GattService.UUID_SERVICE_GENERIC_ACCESS);
@@ -94,30 +119,20 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                 .pair(builder)
                 .requestDeviceInfo(builder)
                 .sendUserInfo(builder)
-                .checkAuthenticationNeeded(builder, getDevice())
-                .setWearLocation(builder)
-                .setHeartrateSleepSupport(builder)
-                .setFitnessGoal(builder)
+//                .checkAuthenticationNeeded(builder, getDevice())
+//                .setWearLocation(builder)
+//                .setHeartrateSleepSupport(builder)
+//                .setFitnessGoal(builder)
                 .enableFurtherNotifications(builder, true)
                 .setCurrentTime(builder)
-                .requestBatteryInfo(builder)
-                .setHighLatency(builder)
+//                .requestBatteryInfo(builder)
+//                .setHighLatency(builder)
                 .setInitialized(builder);
         return builder;
     }
 
     private MiBandSupport readDate(TransactionBuilder builder) {
         builder.read(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_DATE_TIME));
-        return this;
-    }
-
-    public MiBandSupport setLowLatency(TransactionBuilder builder) {
-        builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_LE_PARAMS), getLowLatency());
-        return this;
-    }
-
-    public MiBandSupport setHighLatency(TransactionBuilder builder) {
-        builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_LE_PARAMS), getHighLatency());
         return this;
     }
 
@@ -176,7 +191,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
     }
 
     private MiBandSupport sendDefaultNotification(TransactionBuilder builder, short repeat, BtLEAction extraAction) {
-        LOG.info("Sending notification to MiBand: (" + repeat + " times)");
+        Log.d(TAG, "Sending notification to MiBand: (" + repeat + " times)");
         NotificationStrategy strategy = getNotificationStrategy();
         for (short i = 0; i < repeat; i++) {
             strategy.sendDefaultNotification(builder, extraAction);
@@ -197,7 +212,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      */
     private MiBandSupport sendCustomNotification(VibrationProfile vibrationProfile, int flashTimes, int flashColour, int originalColour, long flashDuration, BtLEAction extraAction, TransactionBuilder builder) {
         getNotificationStrategy().sendCustomNotification(vibrationProfile, flashTimes, flashColour, originalColour, flashDuration, extraAction, builder);
-        LOG.info("Sending notification to MiBand");
+        Log.d(TAG, "Sending notification to MiBand");
         return this;
     }
 
@@ -214,18 +229,6 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
         }
     }
 
-    static final byte[] reboot = new byte[]{MiBandService.COMMAND_REBOOT};
-
-    static final byte[] startHeartMeasurementManual = new byte[]{0x15, MiBandService.COMMAND_SET_HR_MANUAL, 1};
-    static final byte[] stopHeartMeasurementManual = new byte[]{0x15, MiBandService.COMMAND_SET_HR_MANUAL, 0};
-    static final byte[] startHeartMeasurementContinuous = new byte[]{0x15, MiBandService.COMMAND_SET__HR_CONTINUOUS, 1};
-    static final byte[] stopHeartMeasurementContinuous = new byte[]{0x15, MiBandService.COMMAND_SET__HR_CONTINUOUS, 0};
-    static final byte[] startHeartMeasurementSleep = new byte[]{0x15, MiBandService.COMMAND_SET_HR_SLEEP, 1};
-    static final byte[] stopHeartMeasurementSleep = new byte[]{0x15, MiBandService.COMMAND_SET_HR_SLEEP, 0};
-
-    static final byte[] startRealTimeStepsNotifications = new byte[]{MiBandService.COMMAND_SET_REALTIME_STEPS_NOTIFICATION, 1};
-    static final byte[] stopRealTimeStepsNotifications = new byte[]{MiBandService.COMMAND_SET_REALTIME_STEPS_NOTIFICATION, 0};
-
     /**
      * Part of device initialization process. Do not call manually.
      *
@@ -233,7 +236,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      * @return
      */
     private MiBandSupport sendUserInfo(TransactionBuilder builder) {
-        LOG.debug("Writing User Info!");
+        Log.d(TAG, "Writing User Info!");
         // Use a custom action instead of just builder.write() because mDeviceInfo
         // is set by handleDeviceInfo *after* this action is created.
         builder.add(new BtLEAction(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_USER_INFO)) {
@@ -245,6 +248,9 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             @Override
             public boolean run(BluetoothGatt gatt) {
                 // at this point, mDeviceInfo should be set
+                while (mDeviceInfo == null) {
+                        SystemClock.sleep(1000);
+                }
                 return new WriteAction(getCharacteristic(),
                         MiBandCoordinator.getAnyUserInfo(getDevice().getAddress()).getData(mDeviceInfo)
                 ).run(gatt);
@@ -254,45 +260,20 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
     }
 
     private MiBandSupport requestBatteryInfo(TransactionBuilder builder) {
-        LOG.debug("Requesting Battery Info!");
+        Log.d(TAG, "Requesting Battery Info!");
         BluetoothGattCharacteristic characteristic = getCharacteristic(MiBandService.UUID_CHARACTERISTIC_BATTERY);
         builder.read(characteristic);
         return this;
     }
 
     private MiBandSupport requestDeviceInfo(TransactionBuilder builder) {
-        LOG.debug("Requesting Device Info!");
+        Log.d(TAG, "Requesting Device Info!");
         BluetoothGattCharacteristic deviceInfo = getCharacteristic(MiBandService.UUID_CHARACTERISTIC_DEVICE_INFO);
         builder.read(deviceInfo);
         BluetoothGattCharacteristic deviceName = getCharacteristic(GattCharacteristic.UUID_CHARACTERISTIC_GAP_DEVICE_NAME);
         builder.read(deviceName);
         return this;
     }
-
-   /* private MiBandSupport requestHRInfo(TransactionBuilder builder) {
-        LOG.debug("Requesting HR Info!");
-        BluetoothGattCharacteristic HRInfo = getCharacteristic(MiBandService.UUID_CHAR_HEART_RATE_MEASUREMENT);
-        builder.read(HRInfo);
-        BluetoothGattCharacteristic HR_Point = getCharacteristic(GattCharacteristic.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT);
-        builder.read(HR_Point);
-        return this;
-    }
-    *//**
-     * Part of HR test. Do not call manually.
-     *
-     * @param transaction
-     * @return
-     *//*
-    private MiBandSupport heartrate(TransactionBuilder transaction) {
-        LOG.info("Attempting to read HR ...");
-        BluetoothGattCharacteristic characteristic = getCharacteristic(MiBandService.UUID_CHAR_HEART_RATE_MEASUREMENT);
-        if (characteristic != null) {
-            transaction.write(characteristic, new byte[]{MiBandService.COMMAND_SET__HR_CONTINUOUS});
-        } else {
-            LOG.info("Unable to read HR from  MI device -- characteristic not available");
-        }
-        return this;
-    }*/
 
     /**
      * Part of device initialization process. Do not call manually.
@@ -301,12 +282,12 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      * @return
      */
     private MiBandSupport pair(TransactionBuilder transaction) {
-        LOG.info("Attempting to pair MI device...");
+        Log.d(TAG, "Attempting to pair MI device...");
         BluetoothGattCharacteristic characteristic = getCharacteristic(MiBandService.UUID_CHARACTERISTIC_PAIR);
         if (characteristic != null) {
             transaction.write(characteristic, new byte[]{2});
         } else {
-            LOG.info("Unable to pair MI device -- characteristic not available");
+            Log.d(TAG, "Unable to pair MI device -- characteristic not available");
         }
         return this;
     }
@@ -319,7 +300,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      */
 
     private MiBandSupport setFitnessGoal(TransactionBuilder transaction) {
-        LOG.info("Attempting to set Fitness Goal...");
+        Log.d(TAG, "Attempting to set Fitness Goal...");
         BluetoothGattCharacteristic characteristic = getCharacteristic(MiBandService.UUID_CHARACTERISTIC_CONTROL_POINT);
         if (characteristic != null) {
             int fitnessGoal = MiBandCoordinator.getFitnessGoal(getDevice().getAddress());
@@ -330,7 +311,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                     (byte) ((fitnessGoal >>> 8) & 0xff)
             });
         } else {
-            LOG.info("Unable to set Fitness Goal");
+            Log.d(TAG, "Unable to set Fitness Goal");
         }
         return this;
     }
@@ -342,7 +323,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      * @return
      */
     private MiBandSupport setWearLocation(TransactionBuilder transaction) {
-        LOG.info("Attempting to set wear location...");
+        Log.d(TAG, "Attempting to set wear location...");
         BluetoothGattCharacteristic characteristic = getCharacteristic(MiBandService.UUID_CHARACTERISTIC_CONTROL_POINT);
         if (characteristic != null) {
             int location = MiBandCoordinator.getWearLocation(getDevice().getAddress());
@@ -351,7 +332,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                     (byte) location
             });
         } else {
-            LOG.info("Unable to set Wear Location");
+            Log.d(TAG, "Unable to set Wear Location");
         }
         return this;
     }
@@ -369,6 +350,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
 
     /**
      * Part of device initialization process. Do not call manually.
+     *
      * @param builder
      */
     private MiBandSupport setHeartrateSleepSupport(TransactionBuilder builder) {
@@ -381,10 +363,10 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                         return null;
                     }
                     if (MiBandCoordinator.getHeartrateSleepSupport(getDevice().getAddress())) {
-                        LOG.info("Enabling heartrate sleep support...");
+                        Log.d(TAG, "Enabling heartrate sleep support...");
                         return startHeartMeasurementSleep;
                     } else {
-                        LOG.info("Disabling heartrate sleep support...");
+                        Log.d(TAG, "Disabling heartrate sleep support...");
                         return stopHeartMeasurementSleep;
                     }
                 }
@@ -399,7 +381,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             sendDefaultNotification(builder, repeat, extraAction);
             builder.queue(getQueue());
         } catch (IOException ex) {
-            LOG.error("Unable to send notification to MI device", ex);
+            Log.d(TAG, "Unable to send notification to MI device", ex);
         }
     }
 
@@ -421,7 +403,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
 //            sendCustomNotification(vibrateDuration, vibrateTimes, vibratePause, flashTimes, flashColour, originalColour, flashDuration, builder);
             builder.queue(getQueue());
         } catch (IOException ex) {
-            LOG.error("Unable to send notification to MI device", ex);
+            Log.d(TAG, "Unable to send notification to MI device", ex);
         }
     }
 
@@ -495,7 +477,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             setCurrentTime(builder);
             builder.queue(getQueue());
         } catch (IOException ex) {
-            LOG.error("Unable to set time on MI device", ex);
+            Log.d(TAG, "Unable to set time on MI device", ex);
         }
         //TODO: once we have a common strategy for sending events (e.g. EventHandler), remove this call from here. Meanwhile it does no harm.
         sendCalendarEvents();
@@ -509,7 +491,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
     private MiBandSupport setCurrentTime(TransactionBuilder builder) {
         Calendar now = GregorianCalendar.getInstance();
         Date date = now.getTime();
-        LOG.info("Sending current time to Mi Band: " + DateTimeUtils.formatDate(date) + " (" + date.toGMTString() + ")");
+        Log.d(TAG, "Sending current time to Mi Band: " + DateTimeUtils.formatDate(date) + " (" + date.toGMTString() + ")");
         byte[] nowBytes = MiBandDateConverter.calendarToRawBytes(now);
         byte[] time = new byte[]{
                 nowBytes[0],
@@ -529,7 +511,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
         if (characteristic != null) {
             builder.write(characteristic, time);
         } else {
-            LOG.info("Unable to set time -- characteristic not available");
+            Log.d(TAG, "Unable to set time -- characteristic not available");
         }
         return this;
     }
@@ -567,25 +549,21 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_CONTROL_POINT), reboot);
             builder.queue(getQueue());
         } catch (IOException ex) {
-            LOG.error("Unable to reboot MI", ex);
+            Log.d(TAG, "Unable to reboot MI", ex);
         }
     }
 
     @Override
     public void onHeartRateTest() {
-        if (supportsHeartRate()) {
-            try {
-                TransactionBuilder builder = performInitialized("HeartRateTest");
-                builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementContinuous);
-                builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementManual);
-                builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementSleep);
-                builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), startHeartMeasurementManual);
-                builder.queue(getQueue());
-            } catch (IOException ex) {
-                LOG.error("Unable to read HearRate in  MI1S", ex);
-            }
-        } else {
-//            GB.toast(getContext(), "Heart rate is not supported on this device", Toast.LENGTH_LONG, GB.ERROR);
+        try {
+            TransactionBuilder builder = performInitialized("HeartRateTest");
+            builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementContinuous);
+            builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementManual);
+            builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementSleep);
+            builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), startHeartMeasurementManual);
+            builder.queue(getQueue());
+        } catch (IOException ex) {
+            Log.d(TAG, "Unable to read HearRate in  MI1S", ex);
         }
     }
 
@@ -613,7 +591,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
         try {
             new FetchActivityOperation(this).perform();
         } catch (IOException ex) {
-            LOG.error("Unable to fetch MI activity data", ex);
+            Log.d(TAG, "Unable to fetch MI activity data", ex);
         }
     }
 
@@ -629,7 +607,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                     .write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_LE_PARAMS), enable ? getLowLatency() : getHighLatency())
                     .write(controlPoint, enable ? startRealTimeStepsNotifications : stopRealTimeStepsNotifications).queue(getQueue());
         } catch (IOException e) {
-            LOG.error("Unable to change realtime steps notification to: " + enable, e);
+            Log.d(TAG, "Unable to change realtime steps notification to: " + enable, e);
         }
     }
 
@@ -641,6 +619,11 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
         int advertisementInterval = 0;
 
         return getLatency(minConnectionInterval, maxConnectionInterval, latency, timeout, advertisementInterval);
+    }
+
+    public MiBandSupport setHighLatency(TransactionBuilder builder) {
+        builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_LE_PARAMS), getHighLatency());
+        return this;
     }
 
     private byte[] getLatency(int minConnectionInterval, int maxConnectionInterval, int latency, int timeout, int advertisementInterval) {
@@ -669,6 +652,11 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
         int advertisementInterval = 0;
 
         return getLatency(minConnectionInterval, maxConnectionInterval, latency, timeout, advertisementInterval);
+    }
+
+    public MiBandSupport setLowLatency(TransactionBuilder builder) {
+        builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_LE_PARAMS), getLowLatency());
+        return this;
     }
 
     @Override
@@ -722,7 +710,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
         } else if (MiBandService.UUID_CHARACTERISTIC_HEART_RATE_MEASUREMENT.equals(characteristicUUID)) {
             logHeartrate(characteristic.getValue());
         } else {
-            LOG.info("Unhandled characteristic changed: " + characteristicUUID);
+            Log.d(TAG, "Unhandled characteristic changed: " + characteristicUUID);
             logMessageContent(characteristic.getValue());
         }
     }
@@ -744,7 +732,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
         } else if (MiBandService.UUID_CHARACTERISTIC_DATE_TIME.equals(characteristicUUID)) {
             logDate(characteristic.getValue());
         } else {
-            LOG.info("Unhandled characteristic read: " + characteristicUUID);
+            Log.d(TAG, "Unhandled characteristic read: " + characteristicUUID);
             logMessageContent(characteristic.getValue());
         }
     }
@@ -768,30 +756,30 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      * @param value
      */
     public void logMessageContent(byte[] value) {
-        LOG.info("RECEIVED DATA WITH LENGTH: " + value.length);
+        Log.d(TAG, "RECEIVED DATA WITH LENGTH: " + value.length);
         for (byte b : value) {
-            LOG.warn("DATA: " + String.format("0x%2x", b));
+            Log.d(TAG, "DATA: " + String.format("0x%2x", b));
         }
     }
 
     public void logDate(byte[] value) {
         GregorianCalendar calendar = MiBandDateConverter.rawBytesToCalendar(value);
-        LOG.info("Got Mi Band Date: " + DateTimeUtils.formatDateTime(calendar.getTime()));
+        Log.d(TAG, "Got Mi Band Date: " + DateTimeUtils.formatDateTime(calendar.getTime()));
     }
 
     public void logHeartrate(byte[] value) {
-        LOG.info("Got heartrate:");
+        Log.d(TAG, "Got heartrate:");
         if (value.length == 2 && value[0] == 6) {
             int hrValue = (value[1] & 0xff);
             if (hrValue >= 60 && hrValue <= 90) {
                 NotificationUtils.getInstance(getContext()).cancelAllAlarmNotify();
-                NotificationUtils.getInstance(getContext()).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_2), NotificationUtils.MIN_2);
+                NotificationUtils.getInstance(getContext()).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_5), NotificationUtils.MIN_5);
             } else if ((hrValue >= 91 && hrValue <= 120) || (hrValue >= 46 && hrValue <= 59)) {
                 NotificationUtils.getInstance(getContext()).cancelAllAlarmNotify();
-                NotificationUtils.getInstance(getContext()).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_5), NotificationUtils.MIN_5);
+                NotificationUtils.getInstance(getContext()).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_2), NotificationUtils.MIN_2);
             } else if (hrValue >= 121 || hrValue <= 45) {
                 NotificationUtils.getInstance(getContext()).cancelAllAlarmNotify();
-                NotificationUtils.getInstance(getContext()).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_2), NotificationUtils.MIN_2);
+                NotificationUtils.getInstance(getContext()).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_1), NotificationUtils.MIN_1);
             }
             UserMeasurement measurement = new UserMeasurement();
             measurement.setMeasurementId(3);
@@ -802,6 +790,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                     @Override
                     protected void onPostExecute(Boolean success) {
                         super.onPostExecute(success);
+                        MiApplication.deviceService().disconnect();
 //                        bleSingleton.disconnect();
                     }
                 };
@@ -818,9 +807,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
 
     private void handleRealtimeSteps(byte[] value) {
         int steps = 0xff & value[0] | (0xff & value[1]) << 8;
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("realtime steps: " + steps);
-        }
+        Log.d(TAG, "realtime steps: " + steps);
         Intent intent = new Intent(DeviceService.ACTION_REALTIME_STEPS)
                 .putExtra(DeviceService.EXTRA_REALTIME_STEPS, steps)
                 .putExtra(DeviceService.EXTRA_TIMESTAMP, System.currentTimeMillis());
@@ -832,17 +819,17 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      * characteristic,
      * These messages appear to be always 1 byte long, with values that are listed in MiBandService.
      * It is not excluded that there are further values which are still unknown.
-     * <p/>
+     * <p>
      * Upon receiving known values that request further action by GB, the appropriate method is called.
      *
      * @param value
      */
     private void handleNotificationNotif(byte[] value) {
         if (value.length != 1) {
-            LOG.error("Notifications should be 1 byte long.");
-            LOG.info("RECEIVED DATA WITH LENGTH: " + value.length);
+            Log.d(TAG, "Notifications should be 1 byte long.");
+            Log.d(TAG, "RECEIVED DATA WITH LENGTH: " + value.length);
             for (byte b : value) {
-                LOG.warn("DATA: " + String.format("0x%2x", b));
+                Log.d(TAG, "DATA: " + String.format("0x%2x", b));
             }
             return;
         }
@@ -857,20 +844,20 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             case MiBandService.NOTIFY_AUTHENTICATION_SUCCESS: // fall through -- not sure which one we get
             case MiBandService.NOTIFY_RESET_AUTHENTICATION_SUCCESS: // for Mi 1A
             case MiBandService.NOTIFY_STATUS_MOTOR_AUTH_SUCCESS:
-                LOG.info("Band successfully authenticated");
+                Log.d(TAG, "Band successfully authenticated");
                 // maybe we can perform the rest of the initialization from here
                 doInitialize();
                 break;
 
             case MiBandService.NOTIFY_STATUS_MOTOR_AUTH:
-                LOG.info("Band needs authentication (MOTOR_AUTH)");
-                getDevice().setState(GBDevice.State.AUTHENTICATING);
-                getDevice().sendDeviceUpdateIntent(getContext());
+                Log.d(TAG, "Band needs authentication (MOTOR_AUTH)");
+                /*getDevice().setState(GBDevice.State.AUTHENTICATING);
+                getDevice().sendDeviceUpdateIntent(getContext());*/
                 break;
 
             default:
                 for (byte b : value) {
-                    LOG.warn("DATA: " + String.format("0x%2x", b));
+                    Log.d(TAG, "DATA: " + String.format("0x%2x", b));
                 }
         }
     }
@@ -880,7 +867,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             TransactionBuilder builder = performInitialized("just initializing after authentication");
             builder.queue(getQueue());
         } catch (IOException ex) {
-            LOG.error("Unable to initialize device after authentication", ex);
+            Log.d(TAG, "Unable to initialize device after authentication", ex);
         }
     }
 
@@ -893,7 +880,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                         getContext().getString(R.string.DEVINFO_HR_VER),
                         MiBandFWHelper.formatFirmwareVersion(mDeviceInfo.getHeartrateFirmwareVersion())));
             }
-            LOG.warn("Device info: " + mDeviceInfo);
+            Log.d(TAG, "Device info: " + mDeviceInfo);
             versionCmd.hwVersion = mDeviceInfo.getHwVersion();
             versionCmd.fwVersion = MiBandFWHelper.formatFirmwareVersion(mDeviceInfo.getFirmwareVersion());
             handleGBDeviceEvent(versionCmd);
@@ -936,16 +923,16 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
 
     private void handleControlPointResult(byte[] value, int status) {
         if (status != BluetoothGatt.GATT_SUCCESS) {
-            LOG.warn("Could not write to the control point.");
+            Log.d(TAG, "Could not write to the control point.");
         }
-        LOG.info("handleControlPoint write status:" + status + "; length: " + (value != null ? value.length : "(null)"));
+        Log.d(TAG, "handleControlPoint write status:" + status + "; length: " + (value != null ? value.length : "(null)"));
 
         if (value != null) {
             for (byte b : value) {
-                LOG.info("handleControlPoint WROTE DATA:" + String.format("0x%8x", b));
+                Log.d(TAG, "handleControlPoint WROTE DATA:" + String.format("0x%8x", b));
             }
         } else {
-            LOG.warn("handleControlPoint WROTE null");
+            Log.d(TAG, "handleControlPoint WROTE null");
         }
     }
 
@@ -976,7 +963,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
 
     private void handlePairResult(byte[] pairResult, int status) {
         if (status != BluetoothGatt.GATT_SUCCESS) {
-            LOG.info("Pairing MI device failed: " + status);
+            Log.d(TAG, "Pairing MI device failed: " + status);
             return;
         }
 
@@ -985,17 +972,17 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             if (pairResult.length == 1) {
                 try {
                     if (pairResult[0] == 2) {
-                        LOG.info("Successfully paired  MI device");
+                        Log.d(TAG, "Successfully paired  MI device");
                         return;
                     }
                 } catch (Exception ex) {
-                    LOG.warn("Error identifying pairing result", ex);
+                    Log.d(TAG, "Error identifying pairing result", ex);
                     return;
                 }
             }
             value = Arrays.toString(pairResult);
         }
-        LOG.info("MI Band pairing result: " + value);
+        Log.d(TAG, "MI Band pairing result: " + value);
     }
 
     /**
@@ -1042,7 +1029,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                 builder.queue(getQueue());
             }
         } catch (IOException ex) {
-            LOG.error("Unable to send Events to MI device", ex);
+            Log.d(TAG, "Unable to send Events to MI device", ex);
         }
     }
 

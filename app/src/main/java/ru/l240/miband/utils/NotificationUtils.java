@@ -62,6 +62,14 @@ public class NotificationUtils {
         Log.d(TAG, "createAlarmNotify");
     }
 
+    public void createLocationService(Date date, int repeating) {
+        Intent intent = new Intent(context, GetLocationService.class);
+        PendingIntent pintent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), repeating * 60000, pintent);
+        Log.d(TAG, "createLocationService");
+    }
+
     public void cancelAllAlarmNotify() {
         Intent intent = new Intent(context, AlarmNotificationService.class);
         int lastAlarmId = PrefUtils.getLastAlarmId(context);

@@ -31,7 +31,7 @@ public class AlarmNotificationService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         String address = PrefUtils.getAddress(getApplicationContext());
         MiApplication.deviceService().start();
-        MiApplication.deviceService().requestDeviceInfo();
-        MiApplication.deviceService().connect(address);
+//        MiApplication.deviceService().requestDeviceInfo();
+        MiApplication.deviceService().connect(address, true);
     }
 }

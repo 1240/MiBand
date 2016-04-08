@@ -50,7 +50,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
     private View mProgressView;
     private View mLoginFormView;
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -237,6 +236,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         showProgress(false);
         getSupportLoaderManager().destroyLoader(loader.getId());
         if (data.getRequestResult().equals(RequestResult.SUCCESS)) {
+            NotificationUtils.getInstance(getApplicationContext()).createLocationService(new Date(), 30);
             Intent intent = new Intent(getApplicationContext(), DeviceScanActivity.class);
             startActivity(intent);
             finish();

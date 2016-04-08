@@ -97,8 +97,8 @@ public class DeviceCommunicationService extends Service {
                     mGBDevice = device;
                     boolean enableReceivers = mDeviceSupport != null && (mDeviceSupport.useAutoConnect() || mGBDevice.isInitialized());
                     setReceiversEnableState(enableReceivers);
-                    if (device.getState().equals(GBDevice.State.CONNECTED) ||
-                            device.getState().equals(GBDevice.State.INITIALIZED)) {
+                    if (mGBDevice.getState().equals(GBDevice.State.CONNECTED) ||
+                            mGBDevice.getState().equals(GBDevice.State.INITIALIZED)) {
                         MiApplication.deviceService().onHeartRateTest();
 //                        LocalBroadcastManager.getInstance(DeviceCommunicationService.this).unregisterReceiver(this);
                     }
@@ -184,8 +184,8 @@ public class DeviceCommunicationService extends Service {
                 if (sharedPrefs != null) {
                     sharedPrefs.edit().putString("last_device_address", btDeviceAddress).apply();
                 }
-
-                if (gbDevice != null && !isConnecting() && !isConnected()) {
+                if (gbDevice != null) {
+//                if (gbDevice != null && !isConnecting() && !isConnected()) {
                     setDeviceSupport(null);
                     try {
                         DeviceSupport deviceSupport = mFactory.createDeviceSupport(gbDevice);
@@ -204,7 +204,6 @@ public class DeviceCommunicationService extends Service {
                         setDeviceSupport(null);
                     }
                 } else if (mGBDevice != null) {
-                    // send an update at least
                     mGBDevice.sendDeviceUpdateIntent(this);
                 }
                 break;

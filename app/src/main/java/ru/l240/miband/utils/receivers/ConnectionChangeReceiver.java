@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
+import ru.l240.miband.MiApplication;
 import ru.l240.miband.models.UserMeasurement;
 import ru.l240.miband.realm.RealmHelper;
 import ru.l240.miband.retrofit.ApiFac;
@@ -36,7 +37,14 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
                 Log.i("app", "Network " + ni.getTypeName() + " connected");
                 List<UserMeasurement> syncAll = RealmHelper.getAll(Realm.getInstance(mContext), UserMeasurement.class);
                 if (!syncAll.isEmpty()) {
-                    RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(mContext, true, syncAll);
+                    RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(mContext, true, syncAll) {
+                        @Override
+                        protected void onPostExecute(Boolean success) {
+                            super.onPostExecute(success);
+                            MiApplication.deviceService().disconnect();
+
+                        }
+                    };
                     addMeasurement.execute();
                 }
             } else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
