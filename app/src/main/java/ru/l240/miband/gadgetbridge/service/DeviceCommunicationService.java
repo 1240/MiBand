@@ -92,22 +92,17 @@ public class DeviceCommunicationService extends Service {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(GBDevice.ACTION_DEVICE_CHANGED)) {
-                GBDevice device = intent.getParcelableExtra(GBDevice.EXTRA_DEVICE);
-                if (mGBDevice.equals(device)) {
-                    mGBDevice = device;
-                    boolean enableReceivers = mDeviceSupport != null && (mDeviceSupport.useAutoConnect() || mGBDevice.isInitialized());
-                    setReceiversEnableState(enableReceivers);
-                    if (mGBDevice.getState().equals(GBDevice.State.CONNECTED) ||
-                            mGBDevice.getState().equals(GBDevice.State.INITIALIZED)) {
-                        MiApplication.deviceService().onHeartRateTest();
+                mGBDevice = intent.getParcelableExtra(GBDevice.EXTRA_DEVICE);
+                boolean enableReceivers = mDeviceSupport != null && (mDeviceSupport.useAutoConnect() || mGBDevice.isInitialized());
+                setReceiversEnableState(enableReceivers);
+                /*if (mGBDevice.getState().equals(GBDevice.State.CONNECTED) ||
+                        mGBDevice.getState().equals(GBDevice.State.INITIALIZED)) {
+                    MiApplication.deviceService().onHeartRateTest();
 //                        LocalBroadcastManager.getInstance(DeviceCommunicationService.this).unregisterReceiver(this);
-                    }
+                }*/
                     /*Intent newI = new Intent(GBDevice.);
                     newI.putExtra("device", device);
                     startActivity(newI);*/
-                } else {
-                    LOG.error("Got ACTION_DEVICE_CHANGED from unexpected device: " + mGBDevice);
-                }
             }
         }
     };

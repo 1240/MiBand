@@ -6,15 +6,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-
-import ru.l240.miband.MainActivity;
-import ru.l240.miband.R;
 
 
 /**
@@ -25,6 +21,7 @@ public class NotificationUtils {
     public static final Integer MIN_2 = 2;
     public static final Integer MIN_1 = 1;
     public static final Integer MIN_5 = 5;
+    public static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     private static final String TAG = NotificationUtils.class.getSimpleName();
     private static NotificationUtils instance;
 
@@ -32,6 +29,7 @@ public class NotificationUtils {
     private NotificationManager manager;
     private int lastNotifId = 0;
     private HashMap<Integer, Notification> notifications;
+    private int locationServiceId = 9999;
 
 
     private NotificationUtils(Context context) {
@@ -59,15 +57,15 @@ public class NotificationUtils {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), repeating * 60000, pintent);
         PrefUtils.saveAlarmId(context, lastAlarmId);
-        Log.d(TAG, "createAlarmNotify");
+        Log.d(TAG, "createAlarmNotify " + sdf.format(date) + "repeating " + repeating + "min");
     }
 
     public void createLocationService(Date date, int repeating) {
         Intent intent = new Intent(context, GetLocationService.class);
-        PendingIntent pintent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pintent = PendingIntent.getService(context, locationServiceId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), repeating * 60000, pintent);
-        Log.d(TAG, "createLocationService");
+        Log.d(TAG, "createLocationService " + sdf.format(date) + "repeating " + repeating + "min");
     }
 
     public void cancelAllAlarmNotify() {
@@ -79,6 +77,16 @@ public class NotificationUtils {
             pintent.cancel();
             alarmManager.cancel(pintent);
         }
+        PrefUtils.saveAlarmId(context, 0);
+        Log.d(TAG, "cancelAllAlarmNotify");
+    }
+
+    public void cancelAllLocation() {
+        Intent intent = new Intent(context, GetLocationService.class);
+        PendingIntent pintent = PendingIntent.getService(context, locationServiceId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        pintent.cancel();
+        alarmManager.cancel(pintent);
         PrefUtils.saveAlarmId(context, 0);
         Log.d(TAG, "cancelAllAlarmNotify");
     }

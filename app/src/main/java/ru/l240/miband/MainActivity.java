@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         }
 //        PrefUtils.saveAddress(getApplicationContext(), "C8:0F:10:32:11:17");
         if (PrefUtils.getAddress(getApplicationContext()).isEmpty()) {
-            Intent intent = new Intent(this, DeviceScanActivity.class);
+            Intent intent = new Intent(this, ListPairedDevicesActivity.class);
             startActivity(intent);
             return;
         }
@@ -123,7 +123,9 @@ public class MainActivity extends AppCompatActivity {
     public void refresh(View view) {
         tv.setText("Таймер установлен.");
         NotificationUtils.getInstance(this).cancelAllAlarmNotify();
-        NotificationUtils.getInstance(this).createAlarmNotify(DateUtils.addSeconds(new Date(), 5), NotificationUtils.MIN_5);
+        NotificationUtils.getInstance(this).cancelAllLocation();
+        NotificationUtils.getInstance(this).createAlarmNotify(new Date(), NotificationUtils.MIN_5);
+        NotificationUtils.getInstance(this).createLocationService(new Date(), NotificationUtils.MIN_5);
         /*try {
             bleSingleton.measure();
         } catch (InterruptedException e) {
