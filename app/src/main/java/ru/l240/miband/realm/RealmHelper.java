@@ -1,12 +1,13 @@
 package ru.l240.miband.realm;
 
-import android.support.annotation.NonNull;
-
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
-import io.realm.RealmResults;
+import ru.l240.miband.models.Measurement;
+import ru.l240.miband.models.MeasurementField;
+import ru.l240.miband.models.Profile;
+import ru.l240.miband.models.UserMeasurement;
 
 /**
  * @author Alexander Popov on 03.03.2016.
@@ -32,6 +33,15 @@ public class RealmHelper {
     public static <T extends RealmObject> void clear(Realm realm, Class<T> clazz) {
         realm.beginTransaction();
         realm.clear(clazz);
+        realm.commitTransaction();
+    }
+
+    public static <T extends RealmObject> void clearAll(Realm realm) {
+        realm.beginTransaction();
+        realm.clear(Measurement.class);
+        realm.clear(MeasurementField.class);
+        realm.clear(UserMeasurement.class);
+        realm.clear(Profile.class);
         realm.commitTransaction();
     }
 

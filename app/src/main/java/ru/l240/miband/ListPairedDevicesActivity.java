@@ -1,12 +1,15 @@
 package ru.l240.miband;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
@@ -98,9 +101,30 @@ public class ListPairedDevicesActivity extends ListActivity {
     }
 
     @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
+    protected void onListItemClick(ListView l, View v, final int position, long id) {
         super.onListItemClick(l, v, position, id);
-        PrefUtils.saveAddress(getApplicationContext(), ((BluetoothDevice) pDevices.get(position)).getAddress());
-        NotificationUtils.getInstance(getApplicationContext()).createAlarmNotify(new Date(), NotificationUtils.MIN_5);
+        DialogFragment dialogFragment = new DialogFragment() {
+            @Override
+            public Dialog onCreateDialog(Bundle savedInstanceState) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle("Select this device?")
+                        .setMessage("After selecting a device , the timer will be set to scan pulse and the application will close.")
+                        .setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                PrefUtils.saveAddress(getApplicationContext(), ((BluetoothDevice) pDevices.get(position)).getAddress());
+                                NotificationUtils.getInstance(getApplicationContext()).createAlarmNotify(new Date(), NotificationUtils.MIN_1);
+                                ListPairedDevicesActivity.this.finish();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                //
+                            }
+                        });
+                return builder.create();
+            }
+        };
+       dialogFragment.show(getFragmentManager(), "DialogFragment");
     }
 }

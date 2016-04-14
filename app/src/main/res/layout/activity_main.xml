@@ -18,17 +18,37 @@
         android:layout_centerVertical="true"
         android:layout_alignParentEnd="true" />
 
-    <TextView
-        android:id="@+id/tvMainActivitySearch"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:gravity="center"
-        android:textColor="@color/actionbar_font_color"
-        android:onClick="refresh"
-        android:text="Обновить таймер"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Refresh timer"
+            android:id="@+id/button"
+            android:layout_weight="1"
+            android:background="@color/main_color"
+            android:textColor="@color/main_font_color"
+            android:textStyle="bold"
+            android:layout_margin="5dp"
+            android:onClick="refresh" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Exit"
+            android:id="@+id/button2"
+            android:layout_weight="1"
+            android:background="@color/main_color"
+            android:textColor="@color/main_font_color"
+            android:textStyle="bold"
+            android:layout_margin="5dp"
+            android:onClick="exit" />
+    </LinearLayout>
 
     <!--<ProgressBar
         android:id="@+id/progressBar"
