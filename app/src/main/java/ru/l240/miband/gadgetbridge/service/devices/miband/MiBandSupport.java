@@ -3,6 +3,7 @@ package ru.l240.miband.gadgetbridge.service.devices.miband;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.SystemClock;
@@ -800,6 +801,8 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             } else {
                 RealmHelper.save(Realm.getInstance(getContext()), measurement);
             }
+            Intent intent = new Intent(GBDevice.ACTION_DEVICE_CHANGED);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
 //            GB.toast(getContext(), "Heart Rate measured: " + hrValue, Toast.LENGTH_LONG, GB.INFO);
         } else {
             logMessageContent(value);

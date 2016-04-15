@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         NotificationUtils.getInstance(this).cancelAllAlarmNotify();
         NotificationUtils.getInstance(this).cancelAllLocation();
         NotificationUtils.getInstance(this).createAlarmNotify(new Date(), NotificationUtils.MIN_1);
-        NotificationUtils.getInstance(this).createLocationService(new Date(), NotificationUtils.MIN_1);
+        NotificationUtils.getInstance(this).createLocationService(new Date(), NotificationUtils.MIN_5);
         Snackbar snackbar = Snackbar.make(view, "The timer is set successfully", Snackbar.LENGTH_SHORT);
         snackbar.show();
 
@@ -145,6 +145,9 @@ public class MainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 RealmHelper.clearAll(Realm.getInstance(getApplicationContext()));
                                 PrefUtils.saveAddress(getApplicationContext(), "");
+                                NotificationUtils notificationUtils = NotificationUtils.getInstance(MainActivity.this);
+                                notificationUtils.cancelAllAlarmNotify();
+                                notificationUtils.cancelAllLocation();
                                 Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                                 startActivity(intent);
                             }

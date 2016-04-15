@@ -1,9 +1,17 @@
 package ru.l240.miband.utils;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.IntentService;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -31,17 +39,27 @@ import ru.l240.miband.retrofit.RequestTaskAddMeasurement;
 public class AlarmNotificationService extends IntentService {
 
     public static final String TAG = AlarmNotificationService.class.getSimpleName();
+    private DeviceSupport deviceSupport;
 
     public AlarmNotificationService() {
         super(TAG);
     }
 
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(GBDevice.ACTION_DEVICE_GOT_HEART_RATE)) {
+                SystemClock.sleep(50000);
+                deviceSupport.dispose();
+                stopSelf();
+            }
+        }
+    };
+
     @Override
     protected void onHandleIntent(Intent intent) {
         String address = PrefUtils.getAddress(getApplicationContext());
-//        MiApplication.deviceService().start();
-//        MiApplication.deviceService().requestDeviceInfo();
-//        MiApplication.deviceService().connect(address, true);
         BluetoothAdapter bluetoothAdapter
                 = BluetoothAdapter.getDefaultAdapter();
         Set<BluetoothDevice> pairedDevices
@@ -53,8 +71,9 @@ public class AlarmNotificationService extends IntentService {
         }
         if (bleDevice != null) {
             try {
+                registerReceiver(mReceiver, new IntentFilter(GBDevice.ACTION_DEVICE_GOT_HEART_RATE));
                 GBDevice mi = new GBDevice(address, "MI", DeviceType.MIBAND);
-                DeviceSupport deviceSupport = new DeviceSupportFactory(this).createDeviceSupport(mi);
+                deviceSupport = new DeviceSupportFactory(this).createDeviceSupport(mi);
                 deviceSupport.connect();
                 deviceSupport.useAutoConnect();
                 int timeLeft = 30;
@@ -81,10 +100,7 @@ public class AlarmNotificationService extends IntentService {
                     }
                 }
                 deviceSupport.onHeartRateTest();
-                SystemClock.sleep(50000);
-                deviceSupport.dispose();
-                stopSelf();
-            } catch (GBException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

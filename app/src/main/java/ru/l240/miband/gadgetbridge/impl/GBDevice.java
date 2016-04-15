@@ -27,6 +27,8 @@ public class GBDevice implements Parcelable {
             = "ru.l240.miband.gadgetbridge.gbdevice.action.device_changed";
     public static final String ACTION_DEVICE_CONNECTED
             = "ru.l240.miband.gadgetbridge.gbdevice.action.device_connected";
+    public static final String ACTION_DEVICE_GOT_HEART_RATE
+            = "ru.l240.miband.gadgetbridge.gbdevice.action.got_heart_rate";
     public static final Creator<GBDevice> CREATOR = new Creator<GBDevice>() {
         @Override
         public GBDevice createFromParcel(Parcel source) {
