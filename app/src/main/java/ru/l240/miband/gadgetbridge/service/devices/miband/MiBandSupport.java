@@ -11,6 +11,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -490,8 +491,9 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      */
     private MiBandSupport setCurrentTime(TransactionBuilder builder) {
         Calendar now = GregorianCalendar.getInstance();
+        now.setTime(new Date());
         Date date = now.getTime();
-        Log.d(TAG, "Sending current time to Mi Band: " + DateTimeUtils.formatDate(date) + " (" + date.toGMTString() + ")");
+        Log.d(TAG, "Sending current time to Mi Band: " + DateTimeUtils.formatDate(date) + " (" + new SimpleDateFormat().format(date) + ")");
         byte[] nowBytes = MiBandDateConverter.calendarToRawBytes(now);
         byte[] time = new byte[]{
                 nowBytes[0],

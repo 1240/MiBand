@@ -4,14 +4,19 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -22,12 +27,54 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import ru.l240.miband.gadgetbridge.impl.GBDevice;
+import ru.l240.miband.gadgetbridge.model.DeviceType;
+import ru.l240.miband.gadgetbridge.service.DeviceSupport;
+import ru.l240.miband.gadgetbridge.service.DeviceSupportFactory;
 import ru.l240.miband.utils.NotificationUtils;
 import ru.l240.miband.utils.PrefUtils;
 
 public class ListPairedDevicesActivity extends ListActivity {
 
     private List<Object> pDevices;
+    private ProgressDialog dialog;
+    private DeviceSupport deviceSupport;
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(GBDevice.ACTION_DEVICE_CHANGED)) {
+                dialog.setMessage(deviceSupport.getDevice().getStateString());
+                if (deviceSupport.isConnected()) {
+                    dialog.dismiss();
+                    DialogFragment dialogFragment = new DialogFragment() {
+                        @Override
+                        public Dialog onCreateDialog(Bundle savedInstanceState) {
+                            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            builder.setTitle("Select this device?")
+                                    .setMessage("After selecting device, the timer will be set to scan pulse and the application will close.")
+                                    .setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            PrefUtils.saveAddress(getApplicationContext(), deviceSupport.getDevice().getAddress());
+                                            NotificationUtils.getInstance(getApplicationContext()).createAlarmNotify(new Date(), NotificationUtils.MIN_1);
+                                            unregisterReceiver(mReceiver);
+                                            ListPairedDevicesActivity.this.finish();
+                                        }
+                                    })
+                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            //
+                                        }
+                                    });
+                            return builder.create();
+                        }
+                    };
+                    dialogFragment.show(getFragmentManager(), "DialogFragment");
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,12 +150,26 @@ public class ListPairedDevicesActivity extends ListActivity {
     @Override
     protected void onListItemClick(ListView l, View v, final int position, long id) {
         super.onListItemClick(l, v, position, id);
-        DialogFragment dialogFragment = new DialogFragment() {
+        String address = ((BluetoothDevice) pDevices.get(position)).getAddress();
+        dialog = new ProgressDialog(ListPairedDevicesActivity.this);
+        dialog.setTitle("Try to get pulse...");
+        dialog.setMessage("Initialize");
+        dialog.show();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter(GBDevice.ACTION_DEVICE_CHANGED));
+        GBDevice mi = new GBDevice(address, "MI", DeviceType.MIBAND);
+        try {
+            deviceSupport = new DeviceSupportFactory(this).createDeviceSupport(mi);
+            deviceSupport.connect();
+        } catch (GBException e) {
+            e.printStackTrace();
+        }
+
+        /*DialogFragment dialogFragment = new DialogFragment() {
             @Override
             public Dialog onCreateDialog(Bundle savedInstanceState) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setTitle("Select this device?")
-                        .setMessage("After selecting a device , the timer will be set to scan pulse and the application will close.")
+                        .setMessage("After selecting device, the timer will be set to scan pulse and the application will close.")
                         .setPositiveButton("Select", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -125,6 +186,6 @@ public class ListPairedDevicesActivity extends ListActivity {
                 return builder.create();
             }
         };
-       dialogFragment.show(getFragmentManager(), "DialogFragment");
+        dialogFragment.show(getFragmentManager(), "DialogFragment");*/
     }
 }
