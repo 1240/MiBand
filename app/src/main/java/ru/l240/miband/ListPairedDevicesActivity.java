@@ -17,6 +17,8 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -52,13 +54,17 @@ public class ListPairedDevicesActivity extends ListActivity {
                         public Dialog onCreateDialog(Bundle savedInstanceState) {
                             final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                             builder.setTitle("Select this device?")
-                                    .setMessage("After selecting device, the timer will be set to scan pulse and the application will close.")
+                                    .setMessage("After selecting device, the timer will be set to scan pulse.")
                                     .setPositiveButton("Select", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             PrefUtils.saveAddress(getApplicationContext(), deviceSupport.getDevice().getAddress());
                                             NotificationUtils.getInstance(getApplicationContext()).createAlarmNotify(new Date(), NotificationUtils.MIN_1);
-                                            unregisterReceiver(mReceiver);
+                                            try {
+                                                unregisterReceiver(mReceiver);
+                                            } catch (IllegalArgumentException e) {
+                                                //e.printStackTrace();
+                                            }
                                             ListPairedDevicesActivity.this.finish();
                                         }
                                     })
@@ -70,11 +76,24 @@ public class ListPairedDevicesActivity extends ListActivity {
                             return builder.create();
                         }
                     };
-                    dialogFragment.show(getFragmentManager(), "DialogFragment");
+
+                    try {
+                        dialogFragment.show(getFragmentManager(), "DialogFragment");
+                    } catch (Exception e) {
+                        //
+                    }
                 }
             }
         }
     };
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.list_devices_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

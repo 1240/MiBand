@@ -3,22 +3,37 @@ package ru.l240.miband;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import io.realm.Realm;
+import retrofit2.Call;
+import retrofit2.Response;
+import ru.l240.miband.gadgetbridge.service.devices.miband.MiBandSupport;
+import ru.l240.miband.models.JournalItem;
 import ru.l240.miband.models.Profile;
 import ru.l240.miband.realm.RealmHelper;
+import ru.l240.miband.retrofit.ApiFac;
+import ru.l240.miband.retrofit.ApiService;
+import ru.l240.miband.retrofit.RetrofitCallback;
+import ru.l240.miband.utils.MedUtils;
 import ru.l240.miband.utils.NotificationUtils;
 import ru.l240.miband.utils.PrefUtils;
 
@@ -37,84 +52,67 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        bleSingleton = BleSingleton.getInstance(this);
 
         if (RealmHelper.getAll(Realm.getInstance(this), Profile.class).isEmpty()) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             return;
         }
-//        PrefUtils.saveAddress(getApplicationContext(), "C8:0F:10:32:11:17");
         if (PrefUtils.getAddress(getApplicationContext()).isEmpty()) {
             Intent intent = new Intent(this, ListPairedDevicesActivity.class);
             startActivity(intent);
             return;
         }
-//        BluetoothManager mBluetoothManager = ((BluetoothManager) this.getSystemService(Context.BLUETOOTH_SERVICE));
-//        mBluetoothAdapter = mBluetoothManager.getAdapter();
-//        if (mBluetoothAdapter == null) {
-//            tv.setText(R.string.not_support);
-//        } else {
-//            if (!mBluetoothAdapter.isEnabled()) {
-//                receiver = new BroadcastReceiver() {
-//                    @Override
-//                    public void onReceive(Context context, Intent intent) {
-//                        if (mBluetoothAdapter.isEnabled()) {
-//                            tv.setText(R.string.finding_ble);
-//                        } else {
-//                            tv.setText(R.string.psl_ble_on);
-//                        }
-//                    }
-//                };
-//                this.registerReceiver(receiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-//                tv.setText(R.string.psl_ble_on);
-//            } else {
-//                bleSingleton.init();
-//            }
-//        }
-//        pb = (ProgressBar) findViewById(R.id.progressBar);
-//        tv = (TextView) findViewById(R.id.tvMainActivitySearch);
-//        callback = new BleCallback() {
-//            @Override
-//            public void callback(final String data) {
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        tv.setText(data);
-//                        pb.setVisibility(View.INVISIBLE);
-//                    }
-//                });
-//
-//            }
-//
-//            @Override
-//            protected void callbackHR(final String data) {
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        tv.setText(data);
-//                        pb.setVisibility(View.INVISIBLE);
-//                    }
-//                });
-//            }
-//        };
-//        bleSingleton.setCallback(callback);
-//          MiApplication.deviceService().onHeartRateTest();
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String heartrate = intent.getStringExtra("heartrate");
+                View parentLayout = findViewById(R.id.rlMain);
+                Snackbar snackbar = Snackbar.make(parentLayout, String.format("Pulse: %s dpm", heartrate), Snackbar.LENGTH_SHORT);
+                snackbar.show();
+            }
+        };
+        registerReceiver(receiver, new IntentFilter(MiBandSupport.HEART_RATE_ACTION));
+        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ApiService service = ApiFac.getApiService();
+                SharedPreferences preferences = getSharedPreferences(MedUtils.COOKIE_PREF, 0);
+                String cookie = preferences.getString(MedUtils.COOKIE_PREF, "");
+                JournalItem item = new JournalItem();
+                item.setDate(new Date());
+                item.setMessage("Alert!");
+                Call<List<JournalItem>> journalRecords = service.postAddJournalRecords(Collections.singletonList(item), cookie);
+                Snackbar snackbar = Snackbar.make(v, "Alert sending successfully.", Snackbar.LENGTH_SHORT);
+                snackbar.show();
+                journalRecords.enqueue(new RetrofitCallback<List<JournalItem>>() {
+                    @Override
+                    public void onResponse(Call<List<JournalItem>> call, Response<List<JournalItem>> response) {
+                        super.onResponse(call, response);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<JournalItem>> call, Throwable t) {
+                        super.onFailure(call, t);
+                    }
+                });
+            }
+        });
+
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
-//        bleSingleton.connect();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-//        bleSingleton.disconnect();
-//        if (receiver != null)
-//            unregisterReceiver(receiver);
+        if (receiver != null)
+            unregisterReceiver(receiver);
     }
 
     public void refresh(View view) {
@@ -155,14 +153,4 @@ public class MainActivity extends AppCompatActivity {
         dialogFragment.show(getSupportFragmentManager(), "exitDF");
 
     }
-/*
-    private void update() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                pb.setVisibility(View.INVISIBLE);
-            }
-        });
-    }*/
-
 }

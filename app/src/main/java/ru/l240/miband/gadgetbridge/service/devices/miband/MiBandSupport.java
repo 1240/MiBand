@@ -88,6 +88,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
      */
     public static final boolean MI_1A_HR_FW_UPDATE_TEST_MODE_ENABLED = false;
     public static final String TAG = MiBandSupport.class.getSimpleName();
+    public static final String HEART_RATE_ACTION = "ru.l240.miband.gadgetbridge.service.devices.miband.heartrate";
     static final byte[] reboot = new byte[]{MiBandService.COMMAND_REBOOT};
     static final byte[] startHeartMeasurementManual = new byte[]{0x15, MiBandService.COMMAND_SET_HR_MANUAL, 1};
     static final byte[] stopHeartMeasurementManual = new byte[]{0x15, MiBandService.COMMAND_SET_HR_MANUAL, 0};
@@ -783,6 +784,10 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                 NotificationUtils.getInstance(getContext()).cancelAllAlarmNotify();
                 NotificationUtils.getInstance(getContext()).createAlarmNotify(DateUtils.addMinutes(new Date(), NotificationUtils.MIN_1), NotificationUtils.MIN_1);
             }
+            Intent intent = new Intent();
+            intent.setAction(HEART_RATE_ACTION);
+            intent.putExtra("heartrate", String.valueOf(hrValue));
+            getContext().sendBroadcast(intent);
             UserMeasurement measurement = new UserMeasurement();
             measurement.setMeasurementId(3);
             measurement.setMeasurementDate(new Date());

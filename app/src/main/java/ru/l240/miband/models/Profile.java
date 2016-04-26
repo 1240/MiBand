@@ -23,7 +23,6 @@ public class Profile extends RealmObject {
 
     private int id;
     private String firstName;
-    private String middleName;
     private String lastName;
     private String sex;
     private int externalUserId;
@@ -42,14 +41,6 @@ public class Profile extends RealmObject {
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
-    }
-
-    public String getMiddleName() {
-        return middleName;
-    }
-
-    public void setMiddleName(String middleName) {
-        this.middleName = middleName;
     }
 
     public String getLastName() {

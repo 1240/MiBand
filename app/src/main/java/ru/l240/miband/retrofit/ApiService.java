@@ -11,10 +11,12 @@ import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+import ru.l240.miband.models.JournalItem;
 import ru.l240.miband.models.Login;
 import ru.l240.miband.models.Measurement;
 import ru.l240.miband.models.Profile;
 import ru.l240.miband.models.UserMeasurement;
+import ru.l240.miband.retrofit.response.Response;
 
 /**
  * @author Alexander Popov created on 01.03.2016.
@@ -40,4 +42,8 @@ public interface ApiService {
     @GET("getMeasurementsDictionary")
     @Headers({"Content-Type: application/json"})
     public Call<List<Measurement>> getMeasurementsDictionary(@Header("Cookie") String cookieA);
+
+    @POST("addJournalRecords")
+    @Headers({"Content-Type: application/json"})
+    public Call<List<JournalItem>> postAddJournalRecords(@Body List<JournalItem> body, @Header("Cookie") String cookie);
 }

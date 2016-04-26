@@ -3,7 +3,7 @@
     android:layout_height="fill_parent" android:gravity="center_horizontal"
     android:orientation="vertical"
     tools:mContext="ru.fors.remsmed.LoginActivity"
-    android:background="@drawable/login">
+    android:background="#ffffff">
 
     <!-- Login progress -->
     <ProgressBar android:id="@+id/login_progress" style="?android:attr/progressBarStyleLarge"
@@ -17,13 +17,13 @@
         android:gravity="center"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="50dp" >
-
+        <!--inteli-->
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/imageView3"
             android:background="@null"
-            android:src="@drawable/logo"
+            android:src="@drawable/logo_inteli"
             android:paddingTop="30dp"
             android:paddingRight="60dp"
             android:paddingLeft="60dp"
