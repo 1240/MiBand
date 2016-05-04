@@ -1,13 +1,13 @@
 <resources>
     <!--<string name="app_name">RemsmedBand</string>-->
     <string name="app_name">InteliBand</string>
-    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_login">Identificarse</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password (optional)</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
+    <string name="action_sign_in">Identificarse  or register</string>
+    <string name="action_sign_in_short">Identificarse </string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
@@ -21,8 +21,8 @@
     <string name="url">http://intelimed.fors-vyatka.ru/iapp</string>
     <string name="login">Login...</string>
     <string name="password">Password...</string>
-    <string name="signin">Sign in</string>
-    <string name="logo_title">Personal instant medical assistant</string>
+    <string name="signin">Identificarse </string>
+    <string name="logo_title">Asistente médico personal al momento</string>
     <string name="login_check_internet">Pls check internet connection</string>
     <string name="psl_ble_on">Пожалуйста включите Bluetooth!</string>
     <string name="finding_ble">ИЩУ MIBAND 1S...</string>
@@ -277,10 +277,10 @@
     <string name="DEVINFO_HR_VER">"HR: "</string>
     <string name="updatefirmwareoperation_update_in_progress">Firmware update in progress</string>
     <string name="updatefirmwareoperation_firmware_not_sent">Firmware not sent</string>
-    <string name="select_this_device">Select this device?</string>
-    <string name="after_select">After selecting this device, the timer will be set to scan pulse and the application will close.</string>
-    <string name="cancel">Cancel</string>
-    <string name="select">Select</string>
-    <string name="refresh_timer">Refresh timer</string>
-    <string name="exit">Exit</string>
+    <string name="select_this_device">Elegir este dispositivo?</string>
+    <string name="after_select">Tras seleccionar este dispositivo, se iniciará el temporizador para escanear el pulso, y la aplicación se cerrará.</string>
+    <string name="cancel">Cancelar</string>
+    <string name="select">Seleccionar</string>
+    <string name="refresh_timer">Reiniciar el temporizador</string>
+    <string name="exit">Salir</string>
 </resources>

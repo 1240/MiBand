@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
@@ -111,8 +110,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (receiver != null)
-            unregisterReceiver(receiver);
+        try {
+            if (receiver != null)
+                unregisterReceiver(receiver);
+        } catch (Exception e) {
+            //;
+        }
     }
 
     public void refresh(View view) {

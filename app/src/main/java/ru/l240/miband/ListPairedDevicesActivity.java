@@ -53,9 +53,9 @@ public class ListPairedDevicesActivity extends ListActivity {
                         @Override
                         public Dialog onCreateDialog(Bundle savedInstanceState) {
                             final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                            builder.setTitle("Select this device?")
-                                    .setMessage("After selecting device, the timer will be set to scan pulse.")
-                                    .setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                            builder.setTitle(R.string.select_this_device)
+                                    .setMessage(R.string.after_select)
+                                    .setPositiveButton(R.string.select, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             PrefUtils.saveAddress(getApplicationContext(), deviceSupport.getDevice().getAddress());
@@ -68,7 +68,7 @@ public class ListPairedDevicesActivity extends ListActivity {
                                             ListPairedDevicesActivity.this.finish();
                                         }
                                     })
-                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
                                             //
                                         }

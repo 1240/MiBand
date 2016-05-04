@@ -5,6 +5,7 @@ import android.content.Context;
 
 import ru.l240.miband.gadgetbridge.impl.GBDeviceService;
 import ru.l240.miband.gadgetbridge.model.DeviceService;
+import ru.l240.miband.utils.errorcollectors.ErrorReporter;
 
 /**
  * Created by l24o on 04.04.16.
@@ -29,6 +30,7 @@ public class MiApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        ErrorReporter.bindReporter(getApplicationContext());
         deviceService = createDeviceService();
     }
 
