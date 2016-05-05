@@ -35,6 +35,10 @@ public interface ApiService {
     @POST("login")
     Call<JSONObject> authorize(@Body Login login);
 
+    @Headers({"Content-Type: application/json"})
+    @POST("doAlert")
+    Call<JSONObject> doAlert(@Header("Cookie") String cookie);
+
     @GET("getGroupMeasurements")
     @Headers({"Content-Type: application/json"})
     public Call<List<UserMeasurement>> getGroupMeasurements(@Header("Cookie") String cookie);

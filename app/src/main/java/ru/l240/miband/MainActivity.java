@@ -1,22 +1,22 @@
 package ru.l240.miband;
 
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import org.json.JSONObject;
 
 import java.util.Collections;
 import java.util.Date;
@@ -79,26 +79,25 @@ public class MainActivity extends AppCompatActivity {
                 ApiService service = ApiFac.getApiService();
                 SharedPreferences preferences = getSharedPreferences(MedUtils.COOKIE_PREF, 0);
                 String cookie = preferences.getString(MedUtils.COOKIE_PREF, "");
-                JournalItem item = new JournalItem();
-                item.setDate(new Date());
-                item.setMessage("Alert!");
-                Call<List<JournalItem>> journalRecords = service.postAddJournalRecords(Collections.singletonList(item), cookie);
+//                JournalItem item = new JournalItem();
+//                item.setDate(new Date());
+//                item.setMessage("Alert!");
+//                Call<List<JournalItem>> journalRecords = service.postAddJournalRecords(Collections.singletonList(item), cookie);
+                Call<JSONObject> jsonObjectCall = service.doAlert(cookie);
                 Snackbar snackbar = Snackbar.make(v, "Alert sending successfully.", Snackbar.LENGTH_SHORT);
                 snackbar.show();
-                journalRecords.enqueue(new RetrofitCallback<List<JournalItem>>() {
-                    @Override
-                    public void onResponse(Call<List<JournalItem>> call, Response<List<JournalItem>> response) {
-                        super.onResponse(call, response);
-                    }
+                jsonObjectCall.enqueue(new RetrofitCallback<JSONObject>() {
 
-                    @Override
-                    public void onFailure(Call<List<JournalItem>> call, Throwable t) {
-                        super.onFailure(call, t);
-                    }
                 });
             }
         });
-
+        ActionBar ab = getSupportActionBar();
+        if (ab != null) {
+            ab.setHomeButtonEnabled(true);
+            ab.setHomeAsUpIndicator(R.drawable.ic_settings);
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
+        RealmHelper.clearOldLog(Realm.getInstance(MainActivity.this));
     }
 
 
@@ -122,38 +121,24 @@ public class MainActivity extends AppCompatActivity {
         NotificationUtils.getInstance(this).cancelAllAlarmNotify();
         NotificationUtils.getInstance(this).cancelAllLocation();
         NotificationUtils.getInstance(this).createAlarmNotify(new Date(), NotificationUtils.MIN_1);
-        NotificationUtils.getInstance(this).createLocationService(new Date(), NotificationUtils.MIN_1);
+        NotificationUtils.getInstance(this).createLocationService(new Date(), 15);
         Snackbar snackbar = Snackbar.make(view, "The timer is set successfully", Snackbar.LENGTH_SHORT);
         snackbar.show();
 
     }
 
-    public void exit(View view) {
-        DialogFragment dialogFragment = new DialogFragment() {
-            @Override
-            public Dialog onCreateDialog(Bundle savedInstanceState) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Logout")
-                        .setMessage("All you local data will be cleaned. And you can select different device. Are you sure to logout?")
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        })
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                RealmHelper.clearAll(Realm.getInstance(getApplicationContext()));
-                                PrefUtils.saveAddress(getApplicationContext(), "");
-                                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                                startActivity(intent);
-                            }
-                        });
-                return builder.create();
-            }
-        };
-        dialogFragment.show(getSupportFragmentManager(), "exitDF");
-
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                Intent i = new Intent();
+                i.setClass(MainActivity.this, SettingsActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
+
 }

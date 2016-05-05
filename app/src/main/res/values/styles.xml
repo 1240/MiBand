@@ -6,9 +6,14 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:actionBarStyle">@style/ABStyle</item>
     </style>
 
-    <style name="l24o" parent="Theme.AppCompat.Light.DarkActionBar" >
+    <style name="ABStyle" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <item name="android:icon">@drawable/ic_settings</item>
+    </style>
+
+    <style name="l24o" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorAccent">@color/accent_material_dark_1</item>
     </style>
 

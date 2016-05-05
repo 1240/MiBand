@@ -281,6 +281,6 @@
     <string name="after_select">After selecting this device, the timer will be set to scan pulse and the application will close.</string>
     <string name="cancel">Cancel</string>
     <string name="select">Select</string>
-    <string name="refresh_timer">Refresh timer</string>
+    <string name="refresh_timer">Measure pulse rate</string>
     <string name="exit">Exit</string>
 </resources>

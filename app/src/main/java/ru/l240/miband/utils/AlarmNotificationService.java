@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.SystemClock;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Collections;
@@ -16,6 +17,7 @@ import ru.l240.miband.BleCallback;
 import ru.l240.miband.BleSingleton;
 import ru.l240.miband.GBException;
 import ru.l240.miband.MiApplication;
+import ru.l240.miband.SettingsActivity;
 import ru.l240.miband.gadgetbridge.impl.GBDevice;
 import ru.l240.miband.gadgetbridge.impl.GBDeviceService;
 import ru.l240.miband.gadgetbridge.model.DeviceType;
@@ -55,6 +57,13 @@ public class AlarmNotificationService extends IntentService {
             try {
                 GBDevice mi = new GBDevice(address, "MI", DeviceType.MIBAND);
                 DeviceSupport deviceSupport = new DeviceSupportFactory(this).createDeviceSupport(mi);
+                ru.l240.miband.models.Log log = new ru.l240.miband.models.Log();
+                log.setDate(new Date());
+                log.setText("Try connect to MI1S");
+                RealmHelper.save(Realm.getInstance(getApplicationContext()), log);
+                Intent intentSA = new Intent(SettingsActivity.TAG);
+                intentSA.putExtra("logText", log.getText());
+                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intentSA);
                 deviceSupport.connect();
                 deviceSupport.useAutoConnect();
                 int timeLeft = 30;
@@ -66,6 +75,13 @@ public class AlarmNotificationService extends IntentService {
                     timeLeft--;
                     if (timeLeft < 0) {
                         Log.d(TAG, "Device not nearby");
+                        ru.l240.miband.models.Log log1 = new ru.l240.miband.models.Log();
+                        log1.setDate(new Date());
+                        log1.setText("Device not nearby");
+                        Intent intent1 = new Intent(SettingsActivity.TAG);
+                        intent1.putExtra("logText", log1.getText());
+                        RealmHelper.save(Realm.getInstance(getApplicationContext()), log1);
+                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent1);
                         deviceSupport.dispose();
                         return;
                     }
@@ -76,6 +92,13 @@ public class AlarmNotificationService extends IntentService {
                     timeLeft--;
                     if (timeLeft < 0) {
                         Log.d(TAG, "Cannot connect device... But status is connecting");
+                        ru.l240.miband.models.Log log2 = new ru.l240.miband.models.Log();
+                        log2.setDate(new Date());
+                        log2.setText("Cannot connect device... But status is connecting");
+                        Intent intent2 = new Intent(SettingsActivity.TAG);
+                        intent2.putExtra("logText", log2.getText());
+                        RealmHelper.save(Realm.getInstance(getApplicationContext()), log2);
+                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent2);
                         deviceSupport.dispose();
                         return;
                     }

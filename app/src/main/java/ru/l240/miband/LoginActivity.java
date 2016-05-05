@@ -236,7 +236,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         showProgress(false);
         getSupportLoaderManager().destroyLoader(loader.getId());
         if (data.getRequestResult().equals(RequestResult.SUCCESS)) {
-            NotificationUtils.getInstance(getApplicationContext()).createLocationService(new Date(), 5);
+            NotificationUtils.getInstance(getApplicationContext()).createLocationService(new Date(), 15);
 //            Intent intent = new Intent(getApplicationContext(), DeviceScanActivity.class);
             Intent intent = new Intent(getApplicationContext(), ListPairedDevicesActivity.class);
             startActivity(intent);

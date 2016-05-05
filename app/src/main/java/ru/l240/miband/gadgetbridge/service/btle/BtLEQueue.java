@@ -9,17 +9,23 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import ru.l240.miband.MiApplication;
+import io.realm.Realm;
+import ru.l240.miband.SettingsActivity;
 import ru.l240.miband.gadgetbridge.impl.GBDevice;
+import ru.l240.miband.realm.RealmHelper;
 
 
 /**
@@ -155,7 +161,14 @@ public final class BtLEQueue {
     }
 
     private void setDeviceConnectionState(GBDevice.State newState) {
+        ru.l240.miband.models.Log log = new ru.l240.miband.models.Log();
+        log.setDate(new Date());
+        log.setText("new device connection state: " + newState);
         Log.d(TAG, "new device connection state: " + newState);
+        Intent intent = new Intent(SettingsActivity.TAG);
+        intent.putExtra("logText", log.getText());
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+        RealmHelper.save(Realm.getInstance(mContext), log);
         mGbDevice.setState(newState);
         mGbDevice.sendDeviceUpdateIntent(mContext);
         if (mConnectionLatch != null && newState == GBDevice.State.CONNECTED) {

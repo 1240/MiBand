@@ -6,11 +6,16 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+
+import io.realm.Realm;
+import ru.l240.miband.SettingsActivity;
+import ru.l240.miband.realm.RealmHelper;
 
 
 /**
@@ -58,6 +63,13 @@ public class NotificationUtils {
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), repeating * 60000, pintent);
         PrefUtils.saveAlarmId(context, lastAlarmId);
         Log.d(TAG, "createAlarmNotify " + sdf.format(date) + "repeating " + repeating + "min");
+        ru.l240.miband.models.Log log = new ru.l240.miband.models.Log();
+        log.setDate(new Date());
+        log.setText("next time get heart rate " + sdf.format(date) + "repeating " + repeating + "min");
+        RealmHelper.save(Realm.getInstance(context), log);
+        Intent intentSA = new Intent(SettingsActivity.TAG);
+        intentSA.putExtra("logText", log.getText());
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intentSA);
     }
 
     public void createLocationService(Date date, int repeating) {
@@ -66,6 +78,13 @@ public class NotificationUtils {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), repeating * 60000, pintent);
         Log.d(TAG, "createLocationService " + sdf.format(date) + "repeating " + repeating + "min");
+        ru.l240.miband.models.Log log = new ru.l240.miband.models.Log();
+        log.setDate(new Date());
+        log.setText("next time get location: " + sdf.format(date) + "repeating " + repeating + "min");
+        RealmHelper.save(Realm.getInstance(context), log);
+        Intent intentSA = new Intent(SettingsActivity.TAG);
+        intentSA.putExtra("logText", log.getText());
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intentSA);
     }
 
     public void cancelAllAlarmNotify() {

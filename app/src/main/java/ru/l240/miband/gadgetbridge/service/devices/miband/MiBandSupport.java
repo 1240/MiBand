@@ -24,6 +24,7 @@ import java.util.UUID;
 import io.realm.Realm;
 import ru.l240.miband.MiApplication;
 import ru.l240.miband.R;
+import ru.l240.miband.SettingsActivity;
 import ru.l240.miband.gadgetbridge.devices.MiBandCoordinator;
 import ru.l240.miband.gadgetbridge.devices.miband.MiBandDateConverter;
 import ru.l240.miband.gadgetbridge.devices.miband.MiBandFWHelper;
@@ -560,6 +561,13 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
     public void onHeartRateTest() {
         try {
             TransactionBuilder builder = performInitialized("HeartRateTest");
+            ru.l240.miband.models.Log log = new ru.l240.miband.models.Log();
+            log.setDate(new Date());
+            log.setText("Try to get Heart Rate");
+            Intent intent = new Intent(SettingsActivity.TAG);
+            intent.putExtra("logText", log.getText());
+            RealmHelper.save(Realm.getInstance(getContext()), log);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
             builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementContinuous);
             builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementManual);
             builder.write(getCharacteristic(MiBandService.UUID_CHARACTERISTIC_HEART_RATE_CONTROL_POINT), stopHeartMeasurementSleep);
@@ -787,7 +795,14 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             Intent intent = new Intent();
             intent.setAction(HEART_RATE_ACTION);
             intent.putExtra("heartrate", String.valueOf(hrValue));
-            getContext().sendBroadcast(intent);
+            ru.l240.miband.models.Log log = new ru.l240.miband.models.Log();
+            log.setDate(new Date());
+            log.setText("Got heartrate: " + String.valueOf(hrValue));
+            Intent intentSA = new Intent(SettingsActivity.TAG);
+            intentSA.putExtra("logText", log.getText());
+            RealmHelper.save(Realm.getInstance(getContext()), log);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intentSA);
+            getContext().sendBroadcast(intentSA);
             UserMeasurement measurement = new UserMeasurement();
             measurement.setMeasurementId(3);
             measurement.setMeasurementDate(new Date());
