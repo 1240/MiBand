@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+//        bleSingleton = BleSingleton.getInstance(this);
 
         if (RealmHelper.getAll(Realm.getInstance(this), Profile.class).isEmpty()) {
             Intent intent = new Intent(this, LoginActivity.class);
