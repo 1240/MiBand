@@ -821,8 +821,8 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             } else {
                 RealmHelper.save(Realm.getInstance(getContext()), measurement);
             }
-            Intent intent = new Intent(GBDevice.ACTION_DEVICE_CHANGED);
-            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+            Intent intent1 = new Intent(GBDevice.ACTION_DEVICE_CHANGED);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent1);
 //            GB.toast(getContext(), "Heart Rate measured: " + hrValue, Toast.LENGTH_LONG, GB.INFO);
         } else {
             logMessageContent(value);

@@ -26,40 +26,65 @@ public class RealmHelper {
     }
 
     public static <T extends RealmObject> void save(Realm realm, List<T> data) {
-        realm.beginTransaction();
-        realm.copyToRealm(data);
-        realm.commitTransaction();
+        try {
+            realm.beginTransaction();
+            realm.copyToRealm(data);
+        } catch (Exception e) {
+            //
+        } finally {
+            realm.commitTransaction();
+        }
     }
 
     public static <T extends RealmObject> void save(Realm realm, T data) {
-        realm.beginTransaction();
-        realm.copyToRealm(data);
-        realm.commitTransaction();
+        try {
+            realm.beginTransaction();
+            realm.copyToRealm(data);
+        } catch (Exception e) {
+            //
+        } finally {
+            realm.commitTransaction();
+        }
     }
 
     public static <T extends RealmObject> void clear(Realm realm, Class<T> clazz) {
-        realm.beginTransaction();
-        realm.clear(clazz);
-        realm.commitTransaction();
+        try {
+            realm.beginTransaction();
+            realm.clear(clazz);
+        } catch (Exception e) {
+            //e.printStackTrace();
+        } finally {
+            realm.commitTransaction();
+        }
     }
 
     public static <T extends RealmObject> void clearAll(Realm realm) {
-        realm.beginTransaction();
-        realm.clear(Measurement.class);
-        realm.clear(MeasurementField.class);
-        realm.clear(UserMeasurement.class);
-        realm.clear(Profile.class);
-        realm.clear(Log.class);
-        realm.commitTransaction();
+        try {
+            realm.beginTransaction();
+            realm.clear(Measurement.class);
+            realm.clear(MeasurementField.class);
+            realm.clear(UserMeasurement.class);
+            realm.clear(Profile.class);
+            realm.clear(Log.class);
+        } catch (Exception e) {
+            //e.printStackTrace();
+        } finally {
+            realm.commitTransaction();
+        }
     }
 
     public static void clearOldLog(Realm realm) {
-        realm.beginTransaction();
-        realm.where(Log.class)
-                .lessThan("date", DateUtils.startOfTheDay(new Date()))
-                .findAll()
-                .clear();
-        realm.commitTransaction();
+        try {
+            realm.beginTransaction();
+            realm.where(Log.class)
+                    .lessThan("date", DateUtils.startOfTheDay(new Date()))
+                    .findAll()
+                    .clear();
+        } catch (Exception e) {
+            //e.printStackTrace();
+        } finally {
+            realm.commitTransaction();
+        }
     }
 
 
