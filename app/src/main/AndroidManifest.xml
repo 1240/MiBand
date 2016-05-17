@@ -50,12 +50,10 @@
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".DeviceScanActivity"
-            android:label="@string/title_devices"
-            android:theme="@android:style/Theme.Holo.Light.DarkActionBar" />
+            android:label="@string/title_devices"/>
         <activity
             android:name=".ListPairedDevicesActivity"
-            android:label="@string/title_devices"
-            android:theme="@android:style/Theme.Holo.Light.DarkActionBar" />
+            android:label="@string/title_devices"/>
         <activity android:name=".SettingsActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

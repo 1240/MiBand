@@ -18,8 +18,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -30,6 +28,7 @@ import io.realm.Realm;
 import ru.l240.miband.models.Log;
 import ru.l240.miband.realm.RealmHelper;
 import ru.l240.miband.utils.DateUtils;
+import ru.l240.miband.utils.DividerItemDecoration;
 import ru.l240.miband.utils.PrefUtils;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -49,6 +48,7 @@ public class SettingsActivity extends AppCompatActivity {
             ab.setDisplayHomeAsUpEnabled(true);
         }
         RecyclerView lvLog = (RecyclerView) findViewById(R.id.lvLog);
+        lvLog.addItemDecoration(new DividerItemDecoration(SettingsActivity.this, DividerItemDecoration.VERTICAL_LIST));
         List<Log> all = RealmHelper.getAll(Realm.getInstance(SettingsActivity.this), Log.class);
         adapter = new RVAdapter(all);
         lvLog.setAdapter(adapter);
@@ -149,6 +149,12 @@ public class SettingsActivity extends AppCompatActivity {
             return items.size();
         }
 
+        public void addItem(Log item) {
+            items.add(item);
+            notifyDataSetChanged();
+            layout.scrollToPosition(items.size() - 1);
+        }
+
         public class VHolder extends RecyclerView.ViewHolder {
 
             private TextView text;
@@ -160,12 +166,6 @@ public class SettingsActivity extends AppCompatActivity {
                 time = (TextView) itemView.findViewById(R.id.tvtime);
 
             }
-        }
-
-        public void addItem(Log item) {
-            items.add(item);
-            notifyDataSetChanged();
-            layout.scrollToPosition(items.size() - 1);
         }
     }
 }

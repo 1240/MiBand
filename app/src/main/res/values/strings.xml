@@ -283,4 +283,7 @@
     <string name="select">Select</string>
     <string name="refresh_timer">Measure pulse rate</string>
     <string name="exit">Exit</string>
+    <string name="choose_band">Choose band</string>
+    <string name="band_not_connected">Band not connected</string>
+    <string name="get_pulse_rate">Try to get pulse rate</string>
 </resources>
