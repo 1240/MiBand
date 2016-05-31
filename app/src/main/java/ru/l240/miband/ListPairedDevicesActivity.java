@@ -1,5 +1,6 @@
 package ru.l240.miband;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -150,6 +151,7 @@ public class ListPairedDevicesActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("ValidFragment")
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

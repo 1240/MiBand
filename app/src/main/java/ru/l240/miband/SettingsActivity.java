@@ -1,5 +1,6 @@
 package ru.l240.miband;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -82,6 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("ValidFragment")
     public void exit(View view) {
         DialogFragment dialogFragment = new DialogFragment() {
             @Override

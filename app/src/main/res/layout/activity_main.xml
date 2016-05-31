@@ -12,13 +12,13 @@
 
     <ImageButton
         android:id="@+id/imageView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:src="@drawable/attention"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:src="@drawable/alert_background"
+        android:background="@null"
         android:clickable="true"
         android:longClickable="false"
         android:scaleType="fitCenter"
-        android:background="@drawable/round_button"
         android:padding="1dp"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
