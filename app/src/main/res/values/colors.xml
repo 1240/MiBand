@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#003087</color>
+    <color name="colorPrimaryDark">#001b4c</color>
     <color name="colorAccent">#FF4081</color>
     <color name="accent_material_dark_1">#e42362</color>
     <color name="s2">#e42362</color>
@@ -15,10 +15,10 @@
     <color name="actionbar_background_color_">#7d7d7d</color>
     <color name="datebar_background_color_">#ffd7d7d7</color>
     <color name="system_font_color">#7d7d7d</color>
-    <color name="main_color">#02bec3</color>
+    <color name="main_color">#003087</color>
     <color name="chat_me">#FF31caff</color>
     <color name="chat_contact">#e6e5ea</color>
-    <color name="main_color_dark">#0077ff</color>
+    <color name="main_color_dark">#001b4c</color>
     <color name="main_font_color">#ffffff</color>
     <color name="bottombar_font_color">#000000</color>
     <color name="bottombar_font_color_active">#ffffff</color>
