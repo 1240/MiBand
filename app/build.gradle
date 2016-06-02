@@ -34,5 +34,6 @@ dependencies {
     compile 'io.realm:realm-android:0.77.0'
     compile 'com.squareup.retrofit2:retrofit:2.0.0-beta4'
     compile 'com.squareup.retrofit2:converter-gson:2.0.0-beta4'
+    compile 'com.pixplicity.easyprefs:library:1.8.1@aar'
 
 }

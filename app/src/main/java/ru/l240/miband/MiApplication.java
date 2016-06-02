@@ -2,6 +2,9 @@ package ru.l240.miband;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.ContextWrapper;
+
+import com.pixplicity.easyprefs.library.Prefs;
 
 import ru.l240.miband.gadgetbridge.impl.GBDeviceService;
 import ru.l240.miband.gadgetbridge.model.DeviceService;
@@ -32,6 +35,12 @@ public class MiApplication extends Application {
         super.onCreate();
         ErrorReporter.bindReporter(getApplicationContext());
         deviceService = createDeviceService();
+        new Prefs.Builder()
+                .setContext(this)
+                .setMode(ContextWrapper.MODE_PRIVATE)
+                .setPrefsName(getPackageName())
+                .setUseDefaultSharedPreference(true)
+                .build();
     }
 
     protected DeviceService createDeviceService() {

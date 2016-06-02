@@ -11,6 +11,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.pixplicity.easyprefs.library.Prefs;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -129,7 +131,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
 //                .setFitnessGoal(builder)
                 .enableFurtherNotifications(builder, true)
                 .setCurrentTime(builder)
-//                .requestBatteryInfo(builder)
+                .requestBatteryInfo(builder)
 //                .setHighLatency(builder)
                 .setInitialized(builder);
         return builder;
@@ -717,8 +719,6 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             handleNotificationNotif(characteristic.getValue());
         } else if (MiBandService.UUID_CHARACTERISTIC_REALTIME_STEPS.equals(characteristicUUID)) {
             handleRealtimeSteps(characteristic.getValue());
-        } else if (MiBandService.UUID_CHARACTERISTIC_REALTIME_STEPS.equals(characteristicUUID)) {
-            handleRealtimeSteps(characteristic.getValue());
         } else if (MiBandService.UUID_CHARACTERISTIC_HEART_RATE_MEASUREMENT.equals(characteristicUUID)) {
             logHeartrate(characteristic.getValue());
         } else {
@@ -737,6 +737,8 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             handleDeviceInfo(characteristic.getValue(), status);
         } else if (GattCharacteristic.UUID_CHARACTERISTIC_GAP_DEVICE_NAME.equals(characteristicUUID)) {
             handleDeviceName(characteristic.getValue(), status);
+        } else if (MiBandService.UUID_CHARACTERISTIC_REALTIME_STEPS.equals(characteristicUUID)) {
+            handleRealtimeSteps(characteristic.getValue());
         } else if (MiBandService.UUID_CHARACTERISTIC_BATTERY.equals(characteristicUUID)) {
             handleBatteryInfo(characteristic.getValue(), status);
         } else if (MiBandService.UUID_CHARACTERISTIC_HEART_RATE_MEASUREMENT.equals(characteristicUUID)) {
@@ -837,6 +839,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                 .putExtra(DeviceService.EXTRA_REALTIME_STEPS, steps)
                 .putExtra(DeviceService.EXTRA_TIMESTAMP, System.currentTimeMillis());
         LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+        Prefs.putInt("STEPS", steps);
     }
 
     /**
@@ -969,6 +972,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             batteryCmd.lastChargeTime = info.getLastChargeTime();
             batteryCmd.numCharges = info.getNumCharges();
 //            handleGBDeviceEvent(batteryCmd);
+            Prefs.putInt("BATTERY", batteryCmd.level);
         }
     }
 

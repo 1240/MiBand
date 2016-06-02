@@ -18,12 +18,15 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.pixplicity.easyprefs.library.Prefs;
+
 import org.json.JSONObject;
 
 import java.util.Date;
 
 import io.realm.Realm;
 import retrofit2.Call;
+import ru.l240.miband.gadgetbridge.model.DeviceService;
 import ru.l240.miband.gadgetbridge.service.devices.miband.MiBandSupport;
 import ru.l240.miband.models.Profile;
 import ru.l240.miband.realm.RealmHelper;
@@ -42,8 +45,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView tv;
     private BluetoothAdapter mBluetoothAdapter;
     private BroadcastReceiver receiver;
+    private BroadcastReceiver receiverSteps;
     private BleSingleton bleSingleton;
     private BleCallback callback;
+    private TextView tvS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +79,15 @@ public class MainActivity extends AppCompatActivity {
                     snackbar.show();
                 }
             };
+            receiverSteps = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    int STEPS = intent.getIntExtra(DeviceService.EXTRA_REALTIME_STEPS, 0);
+                    tvS.setText(String.valueOf(STEPS));
+                }
+            };
             registerReceiver(receiver, new IntentFilter(MiBandSupport.HEART_RATE_ACTION));
+            registerReceiver(receiverSteps, new IntentFilter(DeviceService.ACTION_REALTIME_STEPS));
         }
 
         ImageView imageView = (ImageView) findViewById(R.id.imageView);
@@ -101,6 +114,17 @@ public class MainActivity extends AppCompatActivity {
             ab.setHomeAsUpIndicator(R.drawable.ic_settings);
             ab.setDisplayHomeAsUpEnabled(true);
         }
+        TextView tvB = (TextView) findViewById(R.id.tvBattery);
+        tvS = (TextView) findViewById(R.id.tvSteps);
+        if (PrefUtils.getAddress(getApplicationContext()).isEmpty()) {
+            tvB.setVisibility(View.GONE);
+            tvS.setVisibility(View.GONE);
+        } else {
+            tvB.setText(String.valueOf(Prefs.getInt("BATTERY", 0)));
+            tvS.setText(String.valueOf(Prefs.getInt("STEPS", 0)));
+        }
+
+
 
     }
 
@@ -110,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             if (receiver != null)
                 unregisterReceiver(receiver);
+                unregisterReceiver(receiverSteps);
         } catch (Exception e) {
             //;
         }
