@@ -51,17 +51,27 @@
         android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        android:textColor="@color/system_font"
+        android:drawableLeft="@drawable/walk_"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:id="@+id/tvSteps" />
+        android:id="@+id/tvSteps"
+        android:foregroundGravity="center_vertical|center"
+        android:gravity="center" />
 
     <TextView
         android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         android:layout_alignParentEnd="true"
-        android:id="@+id/tvBattery" />
+        android:textColor="@color/system_font"
+        android:drawableRight="@drawable/battery_"
+        android:id="@+id/tvBattery"
+        android:foregroundGravity="center_vertical|center"
+        android:gravity="center" />
 
     <!--<ProgressBar
         android:id="@+id/progressBar"

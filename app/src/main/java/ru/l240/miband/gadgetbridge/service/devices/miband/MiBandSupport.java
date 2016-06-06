@@ -806,12 +806,16 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
             RealmHelper.save(Realm.getInstance(getContext()), log);
             LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intentSA);
             getContext().sendBroadcast(intentSA);
-            UserMeasurement measurement = new UserMeasurement();
-            measurement.setMeasurementId(3);
-            measurement.setMeasurementDate(new Date());
-            measurement.setStrValue(String.valueOf(hrValue));
+            UserMeasurement measurementPulse = new UserMeasurement();
+            measurementPulse.setMeasurementId(3);
+            measurementPulse.setMeasurementDate(new Date());
+            measurementPulse.setStrValue(String.valueOf(hrValue));
+            UserMeasurement measurementSteps = new UserMeasurement();
+            measurementSteps.setMeasurementId(61);
+            measurementSteps.setMeasurementDate(new Date());
+            measurementSteps.setStrValue(String.valueOf(Prefs.getInt("STEPS", 0)));
             if (MedUtils.isNetworkConnected(getContext())) {
-                RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(getContext(), false, Collections.singletonList(measurement)) {
+                RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(getContext(), false, Arrays.asList(measurementPulse, measurementSteps)) {
                     @Override
                     protected void onPostExecute(Boolean success) {
                         super.onPostExecute(success);
@@ -821,7 +825,7 @@ public class MiBandSupport extends AbstractBTLEDeviceSupport {
                 };
                 addMeasurement.execute();
             } else {
-                RealmHelper.save(Realm.getInstance(getContext()), measurement);
+                RealmHelper.save(Realm.getInstance(getContext()), measurementPulse);
             }
             Intent intent1 = new Intent(GBDevice.ACTION_DEVICE_CHANGED);
             LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent1);

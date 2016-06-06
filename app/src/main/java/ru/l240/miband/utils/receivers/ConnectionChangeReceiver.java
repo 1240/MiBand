@@ -10,8 +10,11 @@ import android.net.NetworkInfo;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.pixplicity.easyprefs.library.Prefs;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
@@ -36,6 +39,11 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
             if (ni != null && ni.getState() == NetworkInfo.State.CONNECTED) {
                 Log.i("app", "Network " + ni.getTypeName() + " connected");
                 List<UserMeasurement> syncAll = RealmHelper.getAll(Realm.getInstance(mContext), UserMeasurement.class);
+                UserMeasurement measurementSteps = new UserMeasurement();
+                measurementSteps.setMeasurementId(61);
+                measurementSteps.setMeasurementDate(new Date());
+                measurementSteps.setStrValue(String.valueOf(Prefs.getInt("STEPS", 0)));
+                syncAll.add(measurementSteps);
                 if (!syncAll.isEmpty()) {
                     RequestTaskAddMeasurement addMeasurement = new RequestTaskAddMeasurement(mContext, true, syncAll) {
                         @Override

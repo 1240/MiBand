@@ -283,4 +283,7 @@
     <string name="select">Seleccionar</string>
     <string name="refresh_timer">Reiniciar el temporizador</string>
     <string name="exit">Salir</string>
+    <string name="band_not_connected">Dispositivo no conectado</string>
+    <string name="choose_band">Elija el dispositivo</string>
+    <string name="alert_sent">Alerta enviada con exito alert sending succecfully</string>
 </resources>

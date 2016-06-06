@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences preferences = getSharedPreferences(MedUtils.COOKIE_PREF, 0);
                 String cookie = preferences.getString(MedUtils.COOKIE_PREF, "");
                 Call<JSONObject> jsonObjectCall = service.doAlert(cookie);
-                Snackbar snackbar = Snackbar.make(v, "Alert sending successfully.", Snackbar.LENGTH_SHORT);
+                Snackbar snackbar = Snackbar.make(v, R.string.alert_sent, Snackbar.LENGTH_SHORT);
                 snackbar.show();
                 jsonObjectCall.enqueue(new RetrofitCallback<JSONObject>() {
 
